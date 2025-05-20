@@ -7,7 +7,7 @@ export interface AvatarData {
 export const _avatarData = [
   {
     id: '1',
-    src: 'https://i.pinimg.com/originals/d3/6f/ef/d36fef4f4885354afcfd3753dee95741.jpg',
+    src: 'https://i.pinimg.com/736x/ac/5c/98/ac5c982d0cd577c8b9d1ef141017b39e.jpg',
     alt: 'User 1',
   },
   {

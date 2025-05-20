@@ -85,7 +85,7 @@ const OnlineIcon = () => {
           y2="12"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stopColor="#F8F8F8" stopOpacity="0.9" />
+          <stop stop-color="#F8F8F8" stopOpacity="0.9" />
           <stop offset="1" stop-color="#F8F8F8" stopOpacity="0.3" />
         </linearGradient>
       </defs>

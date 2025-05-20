@@ -1,25 +1,13 @@
 /** @type {import('tailwindcss').Config} */
-import type { Config } from 'tailwindcss';
-import { fontFamily } from 'tailwindcss/defaultTheme';
 
-const config: Config = {
-  content: [
-    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/layouts/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/sections/**/*.{js,ts,jsx,tsx,mdx}',
-  ],
+//--------------------------------------------------------
+
+export default {
+  darkMode: 'class',
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
-    darkMode: 'class',
-    theme: {
-      container: {
-        center: true,
-        screens: {
-          DEFAULT: '100%',
-          '3xl': '1800px',
-        },
-      },
+    container: {
+      center: true,
     },
     screens: {
       sm: '390px',
@@ -31,9 +19,9 @@ const config: Config = {
     },
     extend: {
       fontFamily: {
-        inter: ['Inter', ...fontFamily.sans],
-        rubik: ['Rubik', ...fontFamily.sans],
-        schibstedGrotesk: ['Schibsted Grotesk', ...fontFamily.sans],
+        inter: ['Inter', 'sans-serif'],
+        grotesk: ['Schibsted Grotesk', 'sans-serif'],
+        rubik: ['Rubik', 'sans-serif'],
       },
       fontSize: {
         h2: ['48px', '56px'],
@@ -41,18 +29,22 @@ const config: Config = {
         h4: ['32px', '40px'],
         h5: ['24px', '28px'],
         title: ['20px', '24px'],
-        base2: ['14px', '20px'],
+        // base: ["16px", "24px"], //base
+        base2: ['14px', '20px'], //sm
         hairline1: ['12px', '20px'],
-        caption: ['12px', '16px'],
+        caption: ['12px', '16px'], //xs
         xxs: ['10px', '12px'],
       },
       colors: {
-        cushion: '#444',
-        avt: '#2e2e2e',
-        auth: '#202020',
+        auth: '#212121',
         primary: 'rgba(248, 248, 248, 0.95)',
         secondary: 'rgba(248, 248, 248, 0.7)',
         tertiary: 'rgba(248, 248, 248, 0.5)',
+        background: {
+          DEFAULT: 'rgba(40, 40, 40, 0.7)',
+          secondary: 'rgba(40, 40, 40, 0.8)',
+          third: 'rgba(40, 40, 40, 0.90)',
+        },
         surface: {
           DEFAULT: '#282828B2',
           2: '#282828CC',
@@ -159,7 +151,6 @@ const config: Config = {
           25: 'rgba(255, 255, 255, 0.40)',
         },
         wine: '#BD3027',
-        hover: '#f8f8f81a',
       },
       width: {
         '18': '72px',
@@ -181,19 +172,14 @@ const config: Config = {
         'linear-red':
           'linear-gradient(0deg, #BD3027 0%, #BD3027 100%, rgba(40, 40, 40, 0.70))',
         'linear-hover':
-          'linear-gradient(0deg, rgba(248, 248, 248, 0.10) 0%, rgba(248, 248, 248, 0.10) 100%)',
+          'linear-gradient(0deg, rgba(248, 248, 248, 0.10) 0%, rgba(248, 248, 248, 0.10) 100%,rgba(40, 40, 40, 0.70))',
         'linear-object':
           'linear-gradient(180deg, rgba(248, 248, 248, 0.90) 0%, rgba(248, 248, 248, 0.30) 100%)',
         auth:
           'radial-gradient(at 37% 100%, #3b3bba30 0px, transparent 50%),' +
-          'radial-gradient(at 61% 100%, #623d762b 0px, transparent 50%),' +
-          'radial-gradient(at 21% 0%, hsla(289,30%,47%,0.07) 0px, transparent 50%),' +
-          'radial-gradient(at 45% 0%, hsla(266,100%,68%,0.1) 0px, transparent 50%),' +
-          'radial-gradient(at 60% 0%, hsla(62,100%,88%,0.09) 0px, transparent 50%)',
-        'auth-form':
-          'linear-gradient(158deg,hsla(0,0%,100%,.06) 14.19%,hsla(0,0%,100%,0) 50.59%,hsla(0,0%,100%,0) 68.79%,hsla(0,0%,100%,.02) 105.18%)',
+          'radial-gradient(at 61% 100%, #623d762b 0px, transparent 50%)',
 
-        modal:
+        'modal-backdrop':
           'linear-gradient(0deg, rgba(248, 248, 248, 0.05) 0%, rgba(255, 255, 255, 0.05) 100%),rgba(40, 40, 40, 0.70)',
       },
       boxShadow: {
@@ -214,11 +200,11 @@ const config: Config = {
           ' 0px 4px 4px -4px rgba(5, 5, 5, 0.10),' +
           '0px 0.5px 1.5px -4px rgba(5, 5, 5, 0.50)',
         'auth-card':
-          'inset 2px 4px 16px 0 hsla(0, 0%, 97%, .06),' +
-          '0 24px 24px -16px rgba(5, 5, 5, .09),' +
-          '0 6px 13px 0 rgba(5, 5, 5, .1),' +
-          '0 6px 4px -4px rgba(5, 5, 5, .1),' +
-          '0 5px 1.5px -4px rgba(5, 5, 5, .25)',
+          '2px 4px 16px 0px rgba(248, 248, 248, 0.06) inset,' +
+          '0px 24px 24px -16px rgba(5, 5, 5, 0.09),' +
+          '0px 6px 13px 0px rgba(5, 5, 5, 0.10),' +
+          '0px 6px 4px -4px rgba(5, 5, 5, 0.10),' +
+          '0px 5px 1.5px -4px rgba(5, 5, 5, 0.25)',
         dropup:
           '0px 24px 32px -12px rgba(18, 18, 18, 0.10),' +
           '2px 4px 16px 0px rgba(248, 248, 248, 0.06) inset',
@@ -237,13 +223,10 @@ const config: Config = {
           '0px 6px 12px 0px rgba(5, 5, 5, 0.1),' +
           '0px 4px 4px -4px rgba(5, 5, 5, 0.1),' +
           '0px 0.5px 1.5px -4px rgba(5, 5, 5, 0.5)',
-        'theme-box': '0px 0px 5.622px 0px rgba(248, 248, 248, 0.25) inset',
-        'theme-box2': '0px 0px 5.622px 0px rgba(248, 248, 248, 0.25) inset',
       },
-      backdropBlur: {
-        50: 'blur(50px)',
-        16: 'blur(16px)',
-        35 :'blur(35.135135650634766px)',
+      backdropFilter: {
+        'blur-50': 'blur(50px)',
+        'blur-16': 'blur(16px)',
       },
       zIndex: {
         999999: '999999',
@@ -259,6 +242,5 @@ const config: Config = {
       },
     },
   },
-  plugins: [],
+  plugins: [require('tailwindcss-filters')],
 };
-export default config;

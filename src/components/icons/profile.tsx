@@ -1,11 +1,11 @@
-import { cn } from '@/lib/utils';
-
-export default function Profile({ className }: { className?: string }) {
+export default function Profile() {
   return (
     <svg
       id="profile-icon"
-      className={cn('h-6 w-6 stroke-secondary', className)}
+      className={'h-6 w-6 stroke-secondary'}
       xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
       viewBox="0 0 24 24"
       fill="none"
     >

@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils';
+import { cn } from '@lib/utils';
 
 type ListTileProps = {
   className?: string;
@@ -15,7 +15,7 @@ const ListTile = ({ children, className, onClick, active }: ListTileProps) => {
       <div
         onClick={onClick}
         className={cn(
-          `relative z-9 p-3 gap-4 w-full flex items-center rounded-[20px] ${active ? 'bg-neutral2-10 hover:bg-neutral2-5 active:bg-neutral3-20' : 'bg-neutral2-2 hover:bg-neutral2-5 active:bg-neutral3-20'} select-none cursor-pointer transition-colors ease-in-out`,
+          `relative z-9 p-3 gap-4 w-full flex items-center rounded-[20px] ${active ? 'bg-neutral2-10 hover:bg-neutral2-5 active:bg-neutral3-20' : 'bg-neutral2-2 hover:bg-neutral2-5 active:bg-neutral3-20'} select-none cursor-pointer transition-colors duration-200 ease-in-out`,
           className,
         )}
       >

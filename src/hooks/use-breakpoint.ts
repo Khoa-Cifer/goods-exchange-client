@@ -1,14 +1,11 @@
-'use client';
-import React from 'react';
-
-//--------------------------------------------------------------------------------------------
+import { useState, useEffect } from 'react';
 
 export type Breakpoint = 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | undefined;
 
 const useBreakPoint = () => {
-  const [breakpoint, setBreakpoint] = React.useState<Breakpoint>();
+  const [breakpoint, setBreakpoint] = useState<Breakpoint>();
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (typeof window !== 'undefined') {
       const handleResize = () => {
         setBreakpoint(identifyBreakpoint(window.innerWidth));

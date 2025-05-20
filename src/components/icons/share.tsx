@@ -1,14 +1,18 @@
-import { Icon } from '@/interfaces/icon';
+import { Icon } from '@interfaces/icon';
+import React from 'react';
 
 //--------------------------------------------------------------------------
 export default function Share({ ...props }: Icon) {
+  const [isShared, setIsShared] = React.useState(false);
+
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       width={props.width}
       height={props.height}
       viewBox="0 0 24 24"
-      fill="none"
+      fill={isShared ? '#F8F8F8' : 'none'}
+      onClick={() => setIsShared(!isShared)}
       className="cursor-pointer"
     >
       <g opacity="0.8">

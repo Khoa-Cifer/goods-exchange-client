@@ -712,3 +712,29 @@
     696px 1654px #ffffff99,
     1144px 60px #ffffff99;
 }
+
+.card-shadow-drak {
+  border-radius: 32px;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  background: var(--neutral-neutral-15, rgba(255, 255, 255, 0.05));
+
+  /* Card shadow/Dark */
+  box-shadow:
+    2px 4px 16px 0px rgba(248, 248, 248, 0.06) inset,
+    0px 24px 24px -16px rgba(5, 5, 5, 0.09),
+    0px 6px 13px 0px rgba(5, 5, 5, 0.1),
+    0px 6px 4px -4px rgba(5, 5, 5, 0.1),
+    0px 5px 1.5px -4px rgba(5, 5, 5, 0.25);
+
+  backdrop-filter: blur(50px);
+}
+
+.button-style {
+  border-radius: 32px;
+  border: 1.5px solid var(--stroke-25-button, rgba(255, 255, 255, 0.4));
+  background: var(--Surface-Background, rgba(40, 40, 40, 0.7));
+
+  /* Blur */
+  box-shadow: 2px 4px 16px 0px rgba(248, 248, 248, 0.06) inset;
+  backdrop-filter: blur(50px);
+}

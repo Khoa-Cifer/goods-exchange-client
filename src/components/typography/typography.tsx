@@ -1,7 +1,8 @@
 import { HTMLAttributes } from 'react';
 import { tv, VariantProps } from 'tailwind-variants';
-import { cn } from '@/lib/utils';
-import { forwardRefWithAs } from '@/utils/render';
+
+import { cn } from '@lib/utils';
+import { forwardRefWithAs } from '@utils/render';
 
 // ----------------------------------------------------------------------
 

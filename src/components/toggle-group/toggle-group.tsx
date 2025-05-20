@@ -1,7 +1,6 @@
-'use client';
 import React, { useState } from 'react';
 import ToggleItem from './toggle-item';
-import { cn } from '@/lib/utils';
+import { cn } from '@lib/utils';
 
 interface ToggleItem {
   key: string;
@@ -33,7 +32,7 @@ const ToggleGroup: React.FC<ToggleGroupProps> = ({
       id="toggle-group"
       className={cn(
         'w-full p-1 flex justify-between items-center bg-neutral3-60 rounded-[100px]',
-        className
+        className,
       )}
     >
       {items.map((item) => (

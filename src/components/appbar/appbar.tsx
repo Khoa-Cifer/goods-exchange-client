@@ -1,10 +1,6 @@
+import { Typography } from '@components/typography';
+import { cn } from '@lib/utils';
 import React from 'react';
-
-import { Typography } from '@/components/typography';
-
-import { cn } from '@/lib/utils';
-
-//-----------------------------------------------------------------------------------------------
 
 type AppBarProps = {
   leading?: React.ReactNode;
@@ -24,12 +20,7 @@ const AppBar: React.FC<AppBarProps> = ({
   className,
 }) => {
   return (
-    <section
-      className={cn(
-        'w-full min-h-11 gap-2 flex justify-between items-center',
-        className
-      )}
-    >
+    <section className={cn('w-full min-h-11 gap-2 flex justify-between items-center',className)}>
       <span className=" flex-1 gap-3 inline-flex items-center justify-start">
         {leading && (
           <span

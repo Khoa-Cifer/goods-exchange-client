@@ -1,9 +1,9 @@
-import { cn } from '@/lib/utils';
+import { cn } from "@lib/utils";
 
-export default function ArrowBack({ className }: { className?: string }) {
+export default function ArrowBack({className}: {className?: string}) {
   return (
     <svg
-      className={cn('w-6 h-6', className)}
+    className={cn('w-6 h-6',className)}
       xmlns="http://www.w3.org/2000/svg"
       width="24"
       height="24"
