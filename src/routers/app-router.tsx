@@ -22,6 +22,7 @@ import { Following } from '@pages/following';
 import { ExploreDetail } from '@pages/explore-detail';
 import { Explore } from '@pages/explore';
 import { EditProfile } from '@pages/edit-profile';
+import SellerPage from '@pages/Seller/seller';
 
 // ----------------------------------------------------------------------
 const router = createBrowserRouter(
@@ -34,6 +35,7 @@ const router = createBrowserRouter(
         {/*Pages with right sidebar  */}
         <Route element={<SidebySideLayout sideComponent={<SidebarRight />} />}>
           <Route index element={<Home />} />
+          <Route path={paths.seller} element={<SellerPage />} />
           <Route path={paths.notifications} element={<Notifications />} />
           <Route path={paths.postDetail} element={<PostDetail />} />
           <Route path={paths.profile} element={<Profile />} />

@@ -17,6 +17,8 @@ export const paths = {
 
   explore: `${ROOTS.HOME}/explore`,
 
+  seller: `${ROOTS.HOME}/sellers`,
+
   messages: `${ROOTS.HOME}/messages`,
 
   bookmarks: `${ROOTS.HOME}/bookmarks`,
