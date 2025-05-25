@@ -8,27 +8,26 @@ const ROOTS = {
 export const paths = {
   home: ROOTS.HOME,
 
-  login: `${ROOTS.HOME}login`,
-  register: `${ROOTS.HOME}/register`,
+  login: '',
 
-  postDetail: `${ROOTS.HOME}/posts/:id`,
+  postDetail: 'posts/:id',
 
-  notifications: `${ROOTS.HOME}notifications`,
+  notifications: 'notifications',
 
-  explore: `${ROOTS.HOME}/explore`,
+  explore: 'explore',
 
-  seller: `${ROOTS.HOME}/sellers`,
+  seller: 'sellers',
 
-  messages: `${ROOTS.HOME}/messages`,
+  messages: 'messages',
 
-  bookmarks: `${ROOTS.HOME}/bookmarks`,
+  bookmarks: 'bookmarks',
 
-  profile: `${ROOTS.HOME}/users/:id`,
-  profileDetail: `${ROOTS.HOME}/users/:id/edit`,
+  profile: 'users/:id',
+  profileDetail: 'users/:id/edit',
 
-  settings: `${ROOTS.HOME}settings`,
+  settings: 'settings',
 
-  following: `${ROOTS.HOME}/following`,
+  following: 'following',
 
-  exploreDetail: `${ROOTS.HOME}/explore/:id`,
+  exploreDetail: 'explore/:id',
 };

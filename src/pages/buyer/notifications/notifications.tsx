@@ -5,7 +5,7 @@ import Tabbar from '@components/tabbar/tabbar';
 import useBreakpoint from '@hooks/use-breakpoint';
 import { useEffect, useMemo, useState } from 'react';
 import { NotificationList } from './components/notification-list';
-import { Notification, NotificateAction } from '../../types/notification';
+import { Notification, NotificateAction } from '@types/notification';
 import { useNavigate } from 'react-router-dom';
 import { paths } from '@routers/path';
 
