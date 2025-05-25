@@ -17,7 +17,6 @@ import {
 } from 'react-router-dom';
 import { Profile } from '@pages/profile';
 import { Bookmarks } from '@pages/bookmarks';
-import Register from '@pages/auth/register';
 import { Following } from '@pages/following';
 import { ExploreDetail } from '@pages/explore-detail';
 import { Explore } from '@pages/explore';
@@ -28,7 +27,6 @@ const router = createBrowserRouter(
   createRoutesFromElements(
     <Route errorElement={<ErrorPage />}>
       <Route path={paths.login} element={<Login />} />
-      <Route path={paths.register} element={<Register />} />
 
       <Route path={paths.home} element={<MainLayout />}>
         {/*Pages with right sidebar  */}
