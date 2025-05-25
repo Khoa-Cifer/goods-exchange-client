@@ -1,9 +1,10 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useState } from 'react';
+import http from '@axios/http';
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  login: (email: string, password: string) => Promise<any>;
+  logout: (googleResponse: any) => void;
   csrfToken: string | null;
   sessionId: string | null;
   accessToken: string | null;
@@ -17,21 +18,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [accessTokenState, setAccessToken] = useState<string | null>(localStorage.getItem('accessToken'));
   const isAuthenticated = !!accessTokenState;
 
-  const login = async (email: string, password: string) => {
-    const response = await fetch('http://localhost:3000/api/login', {
-      method: 'POST',
-      credentials: 'include', // includes HTTP-only cookies
-      headers: {
-        'Content-Type': 'application/json',
+  const login = async (googleResponse: any) => {
+    const response = await http.post("/auth/google/callback",
+      {
+        code: googleResponse.credential,
       },
-      body: JSON.stringify({ email, password }),
-    });
+      {
+        withCredentials: true,
+      }
+    );
 
-    if (!response.ok) throw new Error('Login failed');
-
-    const data = await response.json();
-    const { accessToken, sessionId, csrfToken } = data.cookies;
-
+    const data = await response.data;
+    const { accessToken, sessionId, csrfToken } = data.authResult.cookies;
+   
     // Only store sessionId/csrfToken (accessToken is assumed in HTTP-only cookie)
     localStorage.setItem('csrfToken', csrfToken);
     localStorage.setItem('sessionId', sessionId);
@@ -40,6 +39,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCsrfToken(csrfToken);
     setSessionId(sessionId);
     setAccessToken(accessToken);
+    return { accessToken, sessionId, csrfToken };
   };
 
   const logout = async () => {
@@ -53,6 +53,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     localStorage.removeItem('csrfToken');
+    localStorage.removeItem('accessToken');
     localStorage.removeItem('sessionId');
     setCsrfToken(null);
     setSessionId(null);
