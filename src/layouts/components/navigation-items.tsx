@@ -10,12 +10,12 @@ export const NAVIGATION_ITEMS: NavigationItem[] = [
     Icon: <HomeIcon />,
     path: '/',
   },
-  {
-    title: 'Notifications',
-    update: { status: true, count: 12 },
-    Icon: <NotificationIcon />,
-    path: '/notifications',
-  },
+  // {
+  //   title: 'Notifications',
+  //   update: { status: true, count: 12 },
+  //   Icon: <NotificationIcon />,
+  //   path: '/notifications',
+  // },
   {
     title: 'Messages',
     Icon: <MessageIcon />,
@@ -31,13 +31,13 @@ export const NAVIGATION_ITEMS: NavigationItem[] = [
     Icon: <Profile />,
     path: '/users/1',
   },
-  {
-    title: 'Explore',
-    Icon: (
-      <ExploreIcon/>
-    ),
-    path: '/explore',
-  },
+  // {
+  //   title: 'Explore',
+  //   Icon: (
+  //     <ExploreIcon/>
+  //   ),
+  //   path: '/explore',
+  // },
 ];
 
 export type NavigationItem = {
