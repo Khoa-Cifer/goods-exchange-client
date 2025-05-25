@@ -3,18 +3,18 @@ import { Typography } from '@components/typography';
 import styled from '@styles/auth.module.css';
 import { GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '@context/auth-context';
-import { jwtDecode } from 'jwt-decode';
+import { useNavigate } from 'react-router-dom';
 
 //----------------------------------------------------------------------
 
 export default function Login() {
   const { login } = useAuth();
-  const decodedToken = jwtDecode(localStorage.getItem("accessToken"));
-  console.log(decodedToken);
+  const navigate = useNavigate();
   const handleLogin = async (response: any) => {
     console.log('Response from Google:', response);
     const loginResponse = await login(response);
     console.log('Response from server:', loginResponse);
+    navigate("/buyer")
   };
 
   return (

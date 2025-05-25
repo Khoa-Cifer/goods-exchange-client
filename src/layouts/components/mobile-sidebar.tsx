@@ -77,7 +77,7 @@ const MobileSidebar = ({ onClose, className }: MobileSidebarProps) => {
               <NavLink to="/settings?view=account-settings" className={'p-2.5'}>
                 <SettingSlider className="h-6 w-6 stroke-secondary hover:stroke-primary"></SettingSlider>
               </NavLink>
-              <NavLink to="/login" className={'p-2.5'}>
+              <NavLink to="/" className={'p-2.5'}>
                 <Leave className="h-6 w-6 stroke-secondary hover:stroke-primary" />
               </NavLink>
             </span>

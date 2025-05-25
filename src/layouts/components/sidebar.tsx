@@ -7,7 +7,7 @@ import Leave from '@components/icons/leave';
 import SettingSlider from '@components/icons/setting-slider';
 import { Typography } from '@components/typography';
 import useBreakPoint from '@hooks/use-breakpoint';
-import CreatPost from '@pages/home/creat-post';
+import CreatPost from '@pages/buyer/home/creat-post';
 import { paths } from '@routers/path';
 import React, { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
@@ -168,7 +168,7 @@ const Sidebar: React.FC = () => {
                       <SettingSlider />
                     </div>
                   </NavLink>
-                  <NavLink to="/login">
+                  <NavLink to="/">
                     <div className="h-12 z-50 flex p-2 items-center rounded-b-[32px] bg-neutral1-0 hover:bg-neutral1-5 backdrop-blur-16">
                       <Leave />
                     </div>

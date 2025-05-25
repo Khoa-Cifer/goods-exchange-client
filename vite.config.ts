@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
+      '@authentication': resolve(__dirname, 'src/authentication'),
       '@axios': resolve(__dirname, 'src/axios'),
       '@context': resolve(__dirname, 'src/context'),
       '@assets': resolve(__dirname, 'src/assets'),
