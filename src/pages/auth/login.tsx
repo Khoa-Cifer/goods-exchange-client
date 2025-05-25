@@ -2,23 +2,19 @@ import { Button, CircleButton } from '@components/button';
 import { Typography } from '@components/typography';
 import styled from '@styles/auth.module.css';
 import { GoogleLogin } from '@react-oauth/google';
-import axios from 'axios';
+import { useAuth } from '@context/auth-context';
+import { jwtDecode } from 'jwt-decode';
 
 //----------------------------------------------------------------------
 
 export default function Login() {
+  const { login } = useAuth();
+  const decodedToken = jwtDecode(localStorage.getItem("accessToken"));
+  console.log(decodedToken);
   const handleLogin = async (response: any) => {
     console.log('Response from Google:', response);
-    const { data } = await axios.post(
-      `${import.meta.env.VITE_SERVER_URL}/api/auth/google/callback`,
-      {
-        code: response.credential,
-      },
-      {
-        withCredentials: true,
-      }
-    );
-    console.log('Response from server:', data);
+    const loginResponse = await login(response);
+    console.log('Response from server:', loginResponse);
   };
 
   return (
