@@ -1,6 +1,5 @@
-import { SidebarRight } from '@layouts/components';
 import MainLayout from '@layouts/main-layout';
-import SidebySideLayout from '@layouts/sbs-layout';
+
 import ErrorPage from '@pages/error/error-page';
 import { Home } from '@pages/home';
 import { Message } from '@pages/message';
@@ -19,7 +18,7 @@ import { Profile } from '@pages/profile';
 import { Bookmarks } from '@pages/bookmarks';
 import { Following } from '@pages/following';
 import { ExploreDetail } from '@pages/explore-detail';
-import { Explore } from '@pages/explore';
+
 import { EditProfile } from '@pages/edit-profile';
 import SellerPage from '@pages/Seller/seller';
 
@@ -31,17 +30,16 @@ const router = createBrowserRouter(
 
       <Route path={paths.home} element={<MainLayout />}>
         {/*Pages with right sidebar  */}
-        <Route element={<SidebySideLayout sideComponent={<SidebarRight />} />}>
-          <Route index element={<Home />} />
-          <Route path={paths.seller} element={<SellerPage />} />
-          <Route path={paths.notifications} element={<Notifications />} />
-          <Route path={paths.postDetail} element={<PostDetail />} />
-          <Route path={paths.profile} element={<Profile />} />
-          <Route path={paths.profileDetail} element={<EditProfile />} />
-          <Route path={paths.following} element={<Following />} />
-          <Route path={paths.exploreDetail} element={<ExploreDetail />}></Route>
-          <Route path={paths.explore} element={<Explore />} />
-        </Route>
+
+        <Route index element={<Home />} />
+        <Route path={paths.seller} element={<SellerPage />} />
+        <Route path={paths.notifications} element={<Notifications />} />
+        <Route path={paths.postDetail} element={<PostDetail />} />
+        <Route path={paths.profile} element={<Profile />} />
+        <Route path={paths.profileDetail} element={<EditProfile />} />
+        <Route path={paths.following} element={<Following />} />
+        <Route path={paths.exploreDetail} element={<ExploreDetail />}></Route>
+
         {/*Pages without right sidebar */}
         <Route path={paths.settings} element={<Settings />} />
         <Route path={`${paths.messages}/*`} element={<Message />} />

@@ -5,7 +5,6 @@ import { ComposerInput } from '@components/composer-input';
 import { AddIcon, Logo, SearchIcon } from '@components/icons';
 import { Post } from '@components/post';
 import MobileSidebarTrigger from '@components/sidebar-trigger/mobile-sidebar-trigger';
-import ToggleGroup from '@components/toggle-group/toggle-group';
 import type { Post as typePost } from '@interfaces/post';
 import eventBus from '@utils/event-emitter';
 import React from 'react';
@@ -67,14 +66,6 @@ export default function SellerPage() {
           </div>
         </div>
         <div className="flex w-full items-center gap-2 mb-3">
-          <ToggleGroup
-            className="flex-[2]"
-            items={[
-              { key: '1', label: 'For you' },
-              { key: '2', label: 'Following' },
-            ]}
-          />
-
           <SearchBar className="hidden md:flex-[2] md:flex grow bg-neutral3-60" />
 
           <CircleButton

@@ -1,4 +1,4 @@
-import { ExploreIcon, MessageIcon, NotificationIcon } from '@components/icons';
+import { MessageIcon } from '@components/icons';
 import Bookmark from '@components/icons/bookmark';
 import HomeIcon from '@components/icons/home';
 import Profile from '@components/icons/profile';
@@ -10,12 +10,7 @@ export const NAVIGATION_ITEMS: NavigationItem[] = [
     Icon: <HomeIcon />,
     path: '/',
   },
-  {
-    title: 'Notifications',
-    update: { status: true, count: 12 },
-    Icon: <NotificationIcon />,
-    path: '/notifications',
-  },
+
   {
     title: 'Messages',
     Icon: <MessageIcon />,
@@ -30,13 +25,6 @@ export const NAVIGATION_ITEMS: NavigationItem[] = [
     title: 'Profile',
     Icon: <Profile />,
     path: '/users/1',
-  },
-  {
-    title: 'Explore',
-    Icon: (
-      <ExploreIcon/>
-    ),
-    path: '/explore',
   },
 ];
 

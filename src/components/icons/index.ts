@@ -14,7 +14,7 @@ export { default as EditIcon } from './edit';
 export { default as EmailIcon } from './email';
 export { default as ExpandControl } from './expand-control';
 export { default as ExplandIcon } from './expland';
-export { default as ExploreIcon } from './explore';
+
 export { default as FolderIcon } from './folder';
 export { default as GlobeIcon } from './globe';
 export { default as HeartIcon } from './heart';
