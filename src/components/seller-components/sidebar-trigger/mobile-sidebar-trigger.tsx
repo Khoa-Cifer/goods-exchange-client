@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import MobileSidebar from '@layouts/components/mobile-sidebar';
+import MobileSidebar from '@layouts/seller-layout/components/mobile-sidebar';
 
 //----------------------------------------------------------------------
 

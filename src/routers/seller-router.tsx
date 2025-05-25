@@ -1,8 +1,8 @@
-import MainLayout from "@layouts/main-layout";
-import SidebySideLayout from "@layouts/sbs-layout";
+import MainLayout from "@layouts/seller-layout/main-layout";
+import SidebySideLayout from "@layouts/seller-layout/sbs-layout";
 import { Route, Routes } from "react-router-dom";
 import { paths } from "./path";
-import { SidebarRight } from "@layouts/components";
+import { Sidebar } from "@layouts/seller-layout/components";
 import { Home } from "@pages/buyer/home";
 import Notifications from "@pages/buyer/notifications/notifications";
 import { PostDetail } from "@pages/buyer/post-detail";
@@ -19,7 +19,7 @@ const SellerRouter = () => {
         <Routes>
             <Route element={<MainLayout />}>
                 {/*Pages with right sidebar  */}
-                <Route element={<SidebySideLayout sideComponent={<SidebarRight />} />}>
+                <Route element={<SidebySideLayout sideComponent={<Sidebar />} />}>
                     <Route path={paths.home} element={<Home />} />
                     <Route path={paths.notifications} element={<Notifications />} />
                     <Route path={paths.postDetail} element={<PostDetail />} />

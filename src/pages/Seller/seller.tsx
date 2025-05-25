@@ -4,13 +4,13 @@ import { CircleButton } from '@components/button';
 import { ComposerInput } from '@components/composer-input';
 import { AddIcon, Logo, SearchIcon } from '@components/icons';
 import { Post } from '@components/post';
-import MobileSidebarTrigger from '@components/sidebar-trigger/mobile-sidebar-trigger';
+import MobileSidebarTrigger from '@components/seller-components/sidebar-trigger/mobile-sidebar-trigger';
 import type { Post as typePost } from '@interfaces/post';
 import eventBus from '@utils/event-emitter';
 import React from 'react';
-import CreatPost from '../home/creat-post';
 import { Avatar } from '@components/avatar';
 import { SearchBar } from '@components/search';
+import CreatPost from './home/creat-post';
 
 export default function SellerPage() {
   const [isPostShow, setIsPostShow] = React.useState(false);
