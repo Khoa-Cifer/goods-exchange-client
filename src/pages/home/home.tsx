@@ -1,6 +1,6 @@
 import { _posts as fakePosts } from '@_mocks/_posts';
 import { CircleButton } from '@components/button';
-import { ComposerInput } from '@components/composer-input';
+// import { ComposerInput } from '@components/composer-input';
 import { AddIcon, Logo, SearchIcon } from '@components/icons';
 import { Post } from '@components/post';
 import MobileSidebarTrigger from '@components/sidebar-trigger/mobile-sidebar-trigger';
@@ -71,7 +71,7 @@ export default function Home() {
           <ToggleGroup
             className="flex-[2]"
             items={[
-              { key: '1', label: 'For you' },
+              // { key: '1', label: 'For you' },
               { key: '2', label: 'Following' },
             ]}
           />
@@ -85,7 +85,7 @@ export default function Home() {
           />
         </div>
 
-        <ComposerInput usedBy="post" />
+        {/* <ComposerInput usedBy="post" /> */}
 
         {fakePosts.map((post: typePost) => (
           <Post key={post.id} post={post} />
