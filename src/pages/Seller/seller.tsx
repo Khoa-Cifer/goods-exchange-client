@@ -8,7 +8,7 @@ import MobileSidebarTrigger from '@components/sidebar-trigger/mobile-sidebar-tri
 import type { Post as typePost } from '@interfaces/post';
 import eventBus from '@utils/event-emitter';
 import React from 'react';
-import CreatPost from '../home/creat-post';
+import CreatPost from './creat-post';
 import { Avatar } from '@components/avatar';
 import { SearchBar } from '@components/search';
 
