@@ -6,6 +6,9 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
+      '@authentication': resolve(__dirname, 'src/authentication'),
+      '@axios': resolve(__dirname, 'src/axios'),
+      '@context': resolve(__dirname, 'src/context'),
       '@assets': resolve(__dirname, 'src/assets'),
       '@components': resolve(__dirname, 'src/components'),
       '@lib': resolve(__dirname, 'src/lib'),
@@ -23,5 +26,9 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+      headers: {
+      'Cross-Origin-Opener-Policy': 'unsafe-none',
+      'Cross-Origin-Embedder-Policy': 'unsafe-none', 
+    },
   },
 });
