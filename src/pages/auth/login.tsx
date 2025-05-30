@@ -14,7 +14,7 @@ export default function Login() {
     console.log('Response from Google:', response);
     const loginResponse = await login(response);
     console.log('Response from server:', loginResponse);
-    navigate("/buyer")
+    navigate('/buyer');
   };
 
   return (
@@ -31,28 +31,10 @@ export default function Login() {
             </Typography>
           </div>
 
-
           <div className="flex flex-col gap-3">
-            <Button
-              className="w-full px-[2rem] py-[0.875rem]"
-              child={
-                <div className="flex items-center gap-3 justify-center">
-                  <img
-                    src="/svg/ic_google.svg"
-                    alt="Google Logo"
-                    className="w-5 h-5"
-                  />
-                  {/* <Typography level="base2sm" className="text-secondary">
-                    Sign in with Google
-                  </Typography> */}
-                  <GoogleLogin text="continue_with" onSuccess={handleLogin} />
-
-                </div>
-              }
-            />
+            <GoogleLogin text="continue_with" onSuccess={handleLogin} />
           </div>
         </div>
-
       </div>
     </>
   );
