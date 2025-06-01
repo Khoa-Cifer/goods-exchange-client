@@ -1,9 +1,3 @@
-<<<<<<< HEAD:src/pages/Seller/creat-post.tsx
-'use client';
-
-import { useState } from 'react';
-=======
->>>>>>> 03181bd979a472a9e3a8508aebe7cdd8fe4a8da0:src/pages/buyer/home/creat-post.tsx
 import { Avatar } from '@components/avatar';
 import {
   Button,
@@ -23,28 +17,9 @@ interface ICreatePostProps {
   onBack: () => void;
 }
 
-<<<<<<< HEAD:src/pages/Seller/creat-post.tsx
-export default function CreatePost({ onBack }: ICreatePostProps) {
-  const [content, setContent] = useState('');
-
-  const handlePost = () => {
-    if (!content.trim()) return;
-
-    console.log('Post content:', content);
-    // Nếu bạn muốn hiển thị post ra đâu đó thì có thể truyền callback onSubmit hoặc lưu vào state cha
-
-    setContent('');
-    onBack(); // đóng form sau khi post
-  };
-
-  return (
-    <div className="fixed w-full h-full top-0 left-0 bg-[#444444] z-20 md:bg-[#12121299] shadow-stack">
-      {/* Nút đóng cho màn hình lớn */}
-=======
 export default function CreatPost({ onBack }: ICreatePostProps) {
   return (
     <div className="fixed w-full h-full top-0 left-0 bg-[#444444] z-20 md:bg-[#12121299] shadow-stack">
->>>>>>> 03181bd979a472a9e3a8508aebe7cdd8fe4a8da0:src/pages/buyer/home/creat-post.tsx
       <div className="hidden md:block absolute top-2 right-2 z-20">
         <Button
           className="size-[40px] p-2.5"
@@ -52,13 +27,7 @@ export default function CreatPost({ onBack }: ICreatePostProps) {
           onClick={onBack}
         />
       </div>
-<<<<<<< HEAD:src/pages/Seller/creat-post.tsx
-
       <div className="w-full h-full bg-neutral3-70 md:mx-auto md:w-[40rem] md:h-[16rem] md:mt-[10%] md:rounded-button md:backdrop-blur-[32px]">
-        {/* Thanh trên mobile */}
-=======
-      <div className="w-full h-full bg-neutral3-70 md:mx-auto md:w-[40rem] md:h-[16rem] md:mt-[10%] md:rounded-button md:backdrop-blur-[32px]">
->>>>>>> 03181bd979a472a9e3a8508aebe7cdd8fe4a8da0:src/pages/buyer/home/creat-post.tsx
         <div className="md:hidden w-full flex items-center justify-between p-3">
           <CircleButton
             className="size-10 p-2.5"
@@ -67,25 +36,12 @@ export default function CreatPost({ onBack }: ICreatePostProps) {
           />
           <CircleButton
             className="px-[1.5rem] py-[0.75rem] rounded-[2rem] text-secondary"
-<<<<<<< HEAD:src/pages/Seller/creat-post.tsx
-            onClick={handlePost}
-=======
->>>>>>> 03181bd979a472a9e3a8508aebe7cdd8fe4a8da0:src/pages/buyer/home/creat-post.tsx
             children={<Typography level="base2sm">Post</Typography>}
           />
         </div>
 
         <div className="w-full max-h-screen mx-auto flex justify-center items-center md:h-full md:flex-col md:items-start md:justify-between md:static md:rounded-[2rem] ">
           <div className="w-full h-fit flex justify-between items-center gap-3 p-3 rounded-[1.25rem]">
-<<<<<<< HEAD:src/pages/Seller/creat-post.tsx
-            <Avatar src="https://i.pinimg.com/originals/d3/6f/ef/d36fef4f4885354afcfd3753dee95741.jpg" />
-            <input
-              type="text"
-              placeholder="Start a post..."
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              className="flex-1 bg-transparent placeholder:text-tertiary font-normal text-primary outline-none"
-=======
             <Avatar
               src={
                 'https://i.pinimg.com/originals/d3/6f/ef/d36fef4f4885354afcfd3753dee95741.jpg'
@@ -95,7 +51,6 @@ export default function CreatPost({ onBack }: ICreatePostProps) {
               type="text"
               placeholder="Start a post..."
               className="flex-1 bg-transparent placeholder:text-tertiary font-normal text-primary"
->>>>>>> 03181bd979a472a9e3a8508aebe7cdd8fe4a8da0:src/pages/buyer/home/creat-post.tsx
             />
           </div>
 
@@ -109,16 +64,9 @@ export default function CreatPost({ onBack }: ICreatePostProps) {
 
             <Button
               type="submit"
-<<<<<<< HEAD:src/pages/Seller/creat-post.tsx
-              onClick={handlePost}
-              className="hidden md:flex px-[1.5rem] py-[0.75rem] rounded-[2rem] text-secondary"
-              child={<Typography level="base2sm">Post</Typography>}
-            />
-=======
               className="hidden md:flex px-[1.5rem] py-[0.75rem] rounded-[2rem] text-secondary"
               child={<Typography level="base2sm">Post</Typography>}
             ></Button>
->>>>>>> 03181bd979a472a9e3a8508aebe7cdd8fe4a8da0:src/pages/buyer/home/creat-post.tsx
           </div>
         </div>
       </div>

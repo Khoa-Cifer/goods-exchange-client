@@ -1,6 +1,12 @@
-import { createContext, useEffect, useState, ReactNode, useContext } from 'react';
-import http from '@axios/http';
-import { RolesResponse } from '@types/role';
+import {
+  createContext,
+  useEffect,
+  useState,
+  ReactNode,
+  useContext,
+} from 'react';
+import http from '../axios/http';
+import { RolesResponse } from '../types/role';
 
 interface GlobalData {
   availableRoles?: RolesResponse[];
@@ -30,9 +36,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   return (
-    <AppContext.Provider value={globalData}>
-      {children}
-    </AppContext.Provider>
+    <AppContext.Provider value={globalData}>{children}</AppContext.Provider>
   );
 };
 

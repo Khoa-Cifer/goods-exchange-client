@@ -1,6 +1,5 @@
-import { NotificationItem } from "./notification-list-item";
-import { Notification } from '@types/notification';
-
+import { NotificationItem } from './notification-list-item';
+import { Notification } from '../../../../types/notification';
 
 interface NotificationListProps {
   notifications: Notification[];

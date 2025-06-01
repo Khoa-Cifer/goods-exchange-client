@@ -7,7 +7,7 @@ import {
   Route,
   RouterProvider,
 } from 'react-router-dom';
-import PrivateRouter from '@authentication/private-router';
+import PrivateRouter from '../authentication/private-router';
 import BuyerRouter from './buyer-router';
 import SellerRouter from './seller-router';
 
@@ -18,17 +18,11 @@ const router = createBrowserRouter(
       <Route path={paths.login} element={<Login />} />
 
       <Route element={<PrivateRouter allowedRoles={[4]} />}>
-        <Route
-          path="/buyer/*"
-          element={<BuyerRouter />}
-        />
+        <Route path="/buyer/*" element={<BuyerRouter />} />
       </Route>
 
       <Route element={<PrivateRouter allowedRoles={[3, 4]} />}>
-        <Route
-          path="/seller/*"
-          element={<SellerRouter />}
-        />
+        <Route path="/seller/*" element={<SellerRouter />} />
       </Route>
     </Route>,
   ),

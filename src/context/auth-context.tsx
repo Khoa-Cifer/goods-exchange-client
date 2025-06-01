@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
-import http from '@axios/http';
+import http from '../axios/http';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -12,25 +12,34 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [csrfTokenState, setCsrfToken] = useState<string | null>(localStorage.getItem('csrfToken'));
-  const [sessionIdState, setSessionId] = useState<string | null>(localStorage.getItem('sessionId'));
-  const [accessTokenState, setAccessToken] = useState<string | null>(localStorage.getItem('accessToken'));
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const [csrfTokenState, setCsrfToken] = useState<string | null>(
+    localStorage.getItem('csrfToken'),
+  );
+  const [sessionIdState, setSessionId] = useState<string | null>(
+    localStorage.getItem('sessionId'),
+  );
+  const [accessTokenState, setAccessToken] = useState<string | null>(
+    localStorage.getItem('accessToken'),
+  );
   const isAuthenticated = !!accessTokenState;
 
   const login = async (googleResponse: any) => {
-    const response = await http.post("/auth/google/callback",
+    const response = await http.post(
+      '/auth/google/callback',
       {
         code: googleResponse.credential,
       },
       {
         withCredentials: true,
-      }
+      },
     );
 
     const data = await response.data;
     const { accessToken, sessionId, csrfToken } = data.authResult.cookies;
-   
+
     // Only store sessionId/csrfToken (accessToken is assumed in HTTP-only cookie)
     localStorage.setItem('csrfToken', csrfToken);
     localStorage.setItem('sessionId', sessionId);
@@ -61,7 +70,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout, csrfToken: csrfTokenState, sessionId: sessionIdState, accessToken: accessTokenState }}>
+    <AuthContext.Provider
+      value={{
+        isAuthenticated,
+        login,
+        logout,
+        csrfToken: csrfTokenState,
+        sessionId: sessionIdState,
+        accessToken: accessTokenState,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

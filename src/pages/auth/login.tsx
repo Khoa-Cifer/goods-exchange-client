@@ -2,7 +2,7 @@ import { Button, CircleButton } from '@components/button';
 import { Typography } from '@components/typography';
 import styled from '@styles/auth.module.css';
 import { GoogleLogin } from '@react-oauth/google';
-import { useAuth } from '@context/auth-context';
+import { useAuth } from '../../context/auth-context';
 import { useNavigate } from 'react-router-dom';
 
 //----------------------------------------------------------------------
@@ -12,9 +12,9 @@ export default function Login() {
   const navigate = useNavigate();
   const handleLogin = async (response: any) => {
     console.log('Response from Google:', response);
-    const loginResponse = await login(response);
+    const loginResponse = await login(response.email, response.password);
     console.log('Response from server:', loginResponse);
-    navigate("/buyer")
+    navigate('/buyer');
   };
 
   return (
@@ -31,7 +31,6 @@ export default function Login() {
             </Typography>
           </div>
 
-
           <div className="flex flex-col gap-3">
             <Button
               className="w-full px-[2rem] py-[0.875rem]"
@@ -46,13 +45,11 @@ export default function Login() {
                     Sign in with Google
                   </Typography> */}
                   <GoogleLogin text="continue_with" onSuccess={handleLogin} />
-
                 </div>
               }
             />
           </div>
         </div>
-
       </div>
     </>
   );

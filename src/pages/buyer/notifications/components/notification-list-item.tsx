@@ -1,7 +1,7 @@
 import { getAction } from '@utils/get-Action';
 import { getSummaryNames } from '@utils/get-summary-names';
 import { getTimeAgo } from '@utils/get-time-ago';
-import { NotificateAction, Notification } from '@types/notification';
+import { NotificateAction, Notification } from '../../../../types/notification';
 import { Typography } from '@components/typography';
 import { CircleAvatar } from './circle-avatar';
 
