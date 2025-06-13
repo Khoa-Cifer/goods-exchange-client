@@ -3,7 +3,7 @@ import http from '@axios/http';
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<any>;
+  login: (googleResponse: any) => Promise<any>;
   logout: (googleResponse: any) => void;
   csrfToken: string | null;
   sessionId: string | null;
