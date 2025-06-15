@@ -1,4 +1,4 @@
-import { Button, CircleButton } from '@components/button';
+import { CircleButton } from '@components/button';
 import { Typography } from '@components/typography';
 import styled from '@styles/auth.module.css';
 import { GoogleLogin } from '@react-oauth/google';
@@ -27,7 +27,7 @@ export default function Login() {
               <img src="/svg/circle_logo.svg" alt="Bento Logo" />
             </CircleButton>
             <Typography level="h4" className="text-primary">
-              Sign in to Goodser
+              Sign in to GoodEx
             </Typography>
           </div>
 

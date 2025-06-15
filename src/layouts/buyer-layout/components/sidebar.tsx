@@ -7,12 +7,12 @@ import Leave from '@components/icons/leave';
 import SettingSlider from '@components/icons/setting-slider';
 import { Typography } from '@components/typography';
 import useBreakPoint from '@hooks/use-breakpoint';
-import CreatPost from '@pages/buyer/home/creat-post';
 import { paths } from '@routers/path';
 import React, { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { NAVIGATION_ITEMS } from './navigation-items';
 import NavigationBar from './navigationbar';
+import ChangeAccountIcon from '@components/icons/change-account';
 
 //-------------------------------------------------------------------------
 
@@ -74,33 +74,29 @@ const Sidebar: React.FC = () => {
       {/* Underlayer */}
       <div
         id="underlay"
-        className={`hidden md:block min-h-full transition-all duration-300 ${
-          isExpanded ? 'w-70 2xl:w-80' : 'w-18'
-        }`}
+        className={`hidden md:block min-h-full transition-all duration-300 ${isExpanded ? 'w-70 2xl:w-80' : 'w-18'
+          }`}
       />
       {/* Sidebar */}
       <aside
-        className={`hidden md:flex group/sidebar md:flex-col min-h-full fixed z-1 top-0 left-0  bg-surface-3 text-white transition-all duration-300 ${
-          isExpanded ? 'w-70 2xl:w-80 ' : 'w-18'
-        }`}
+        className={`hidden md:flex group/sidebar md:flex-col min-h-full fixed z-1 top-0 left-0  bg-surface-3 text-white transition-all duration-300 ${isExpanded ? 'w-70 2xl:w-80 ' : 'w-18'
+          }`}
       >
         <section className="w-full flex justify-between items-center p-3">
           <div className=" h-11 w-11 relative">
             {/* Logo with size 44px */}
             <Logo
-              className={` mx-auto  transition-all duration-500 transform ${
-                isExpanded
+              className={` mx-auto  transition-all duration-500 transform ${isExpanded
                   ? 'opacity-100 translate-x-0'
                   : 'group-hover/sidebar:-translate-x-5 group-hover/sidebar:opacity-0'
-              }`}
+                }`}
             />
             {/* Expand/Collapse Button */}
             {!isExpanded && (
               <div className="absolute inset-0 flex items-center justify-center">
                 <CircleButton
-                  className={`group transition-all duration-500 transform group-hover/sidebar:translate-x-0 group-hover/sidebar:opacity-100  ${
-                    isExpanded ? 'opacity-0' : 'translate-x-5 opacity-0'
-                  }`}
+                  className={`group transition-all duration-500 transform group-hover/sidebar:translate-x-0 group-hover/sidebar:opacity-100  ${isExpanded ? 'opacity-0' : 'translate-x-5 opacity-0'
+                    }`}
                   onClick={toggleSidebar}
                 >
                   <Left className="h-6 w-6 stroke-secondary group-hover:stroke-primary group-active:stroke-primary group-[.disabled]:stroke-tertiary" />
@@ -163,6 +159,11 @@ const Sidebar: React.FC = () => {
             {isMoreOptions && (
               <>
                 <div className="absolute -top-[96px] right-0 z-50 mr-0.5 bg-neutral2-5 rounded-[32px] shadow-dropup border border-neutral1-20">
+                  <NavLink to="/seller">
+                    <div className="h-12 z-50 flex p-2 items-center rounded-b-[32px] bg-neutral1-0 hover:bg-neutral1-5 backdrop-blur-16">
+                      <ChangeAccountIcon />
+                    </div>
+                  </NavLink>
                   <NavLink to={`${paths.settings}?view=account-settings`}>
                     <div className="h-12 z-50 flex p-2 items-center rounded-t-[32px] bg-neutral1-0 hover:bg-neutral1-5 backdrop-blur-16">
                       <SettingSlider />
@@ -194,13 +195,6 @@ const Sidebar: React.FC = () => {
               <AddIcon />
             )}
           </CircleButton>
-          <p className="text-text-secondary text-[10px] text-center">
-            Code by{' '}
-            <a target="_blank" href="https://200lab.io/">
-              @<span className="text-[#278e4f]">200</span>
-              <span className="text-[#2170a1]">Lab</span>
-            </a>
-          </p>
           {isMoreOptions && (
             <div
               className="fixed inset-0 z-10"
@@ -209,7 +203,6 @@ const Sidebar: React.FC = () => {
           )}
         </section>
       </aside>
-      {isCreatePost && <CreatPost onBack={handleCreatePost} />}
     </>
   );
 };
