@@ -1,4 +1,5 @@
-export interface RolesResponse {
+export type Role = {
   id: number;
-  name: string;
+  role_id: number;
+  assigned_at: string;
 }
