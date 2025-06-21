@@ -1,4 +1,4 @@
-import { Button, CircleButton } from '@components/button';
+import { CircleButton } from '@components/button';
 import { Typography } from '@components/typography';
 import styled from '@styles/auth.module.css';
 import { GoogleLogin } from '@react-oauth/google';
@@ -27,11 +27,12 @@ export default function Login() {
               <img src="/svg/circle_logo.svg" alt="Bento Logo" />
             </CircleButton>
             <Typography level="h4" className="text-primary">
-              Sign in to Goodser
+              Sign in to GoodEx
             </Typography>
           </div>
 
           <div className="flex flex-col gap-3">
+<<<<<<< HEAD
             <Button
               className="w-full px-[2rem] py-[0.875rem]"
               child={
@@ -48,6 +49,9 @@ export default function Login() {
                 </div>
               }
             />
+=======
+            <GoogleLogin text="continue_with" onSuccess={handleLogin} />
+>>>>>>> 6e0642013832b28f2b54b49aad189bebea9bddca
           </div>
         </div>
       </div>

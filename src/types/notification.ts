@@ -1,4 +1,4 @@
-export interface Notification {
+export type Notification = {
   thumbnail: string;
   actors: string[];
   action: NotificateAction;

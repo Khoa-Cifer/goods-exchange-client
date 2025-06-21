@@ -6,7 +6,11 @@ import {
   useContext,
 } from 'react';
 import http from '../axios/http';
+<<<<<<< HEAD
 import { RolesResponse } from '../types/role';
+=======
+import { RolesResponse } from '@types/role';
+>>>>>>> 6e0642013832b28f2b54b49aad189bebea9bddca
 
 interface GlobalData {
   availableRoles?: RolesResponse[];

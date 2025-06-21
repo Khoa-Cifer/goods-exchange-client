@@ -1,6 +1,6 @@
 import useBreakPoint from '@hooks/use-breakpoint';
-import BottomNavigationBar from '@layouts/seller-layout/components/bottom-navigation-bar';
-import Sidebar from '@layouts/seller-layout/components/sidebar';
+import BottomNavigationBar from '@layouts/buyer-layout/components/bottom-navigation-bar';
+import Sidebar from '@layouts/buyer-layout/components/sidebar';
 import eventBus from '@utils/event-emitter';
 import React from 'react';
 import { Outlet } from 'react-router-dom';

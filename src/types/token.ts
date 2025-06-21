@@ -1,4 +1,4 @@
-export interface UserTokenData {
+export type UserTokenData = {
   sub: string;
   name: string;
   google_id: string;
