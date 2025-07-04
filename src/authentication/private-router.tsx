@@ -16,8 +16,8 @@ const PrivateRouter: React.FC<PrivateRouteProps> = ({ allowedRoles }) => {
 
   const user = jwtDecode(userToken) as UserTokenData;
 
-  console.log("User Role:", user.role_id, "Allowed Roles:", allowedRoles);
-  const roleArray = JSON.parse(user.role_id);
+  console.log("User Role:", user.roleId, "Allowed Roles:", allowedRoles);
+  const roleArray = JSON.parse(user.roleId);
   if (roleArray.some((role: number) => allowedRoles.includes(role))) {
     return <Outlet />;
   }

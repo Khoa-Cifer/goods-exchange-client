@@ -1,5 +1,5 @@
 export type Role = {
   id: number;
-  role_id: number;
+  roleId: number;
   assigned_at: string;
 }
