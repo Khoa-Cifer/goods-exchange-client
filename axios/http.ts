@@ -1,7 +1,9 @@
+'use client';
+
 import axios, { AxiosInstance } from "axios";
 
 const http: AxiosInstance = axios.create({
-  baseURL: process.env.VITE_SERVER_URL + "/api",
+  baseURL: process.env.NEXT_PUBLIC_SERVER_URL + "/api",
   headers: {
     Accept: "application/json",
     "Content-Type": "application/json",

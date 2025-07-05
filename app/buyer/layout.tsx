@@ -1,30 +1,11 @@
 'use client';
 
-import { useAuth } from '@/context/auth-context';
-import { UserTokenData } from '@/types/token';
-import { redirect } from 'next/navigation';
-import { jwtDecode } from 'jwt-decode';
+import ProtectedLayout from "@/components/protected-layout";
 
-interface ProtectedLayoutProps {
-    children: React.ReactNode;
-    allowedRoles: number[];
-}
-
-export default function ProtectedLayout({ children, allowedRoles }: ProtectedLayoutProps) {
-    const { isAuthenticated, accessToken } = useAuth();
-
-    if (!isAuthenticated || !accessToken) {
-        console.warn('ProtectedLayout: No user found, redirecting to login.');
-        redirect('/');
-    }
-
-    const user = jwtDecode<UserTokenData>(accessToken);
-    const roleArray = JSON.parse(user.roleId);
-
-    if (!roleArray.some((role: number) => allowedRoles.includes(role))) {
-        console.warn('ProtectedLayout: Unauthorized access, redirecting to home.');
-        redirect('/');
-    }
-
-    return <>{children}</>;
+export default function Layout({ children }: { children: React.ReactNode }) {
+  return (
+    <ProtectedLayout allowedRoles={["Buyer"]}>
+      {children}
+    </ProtectedLayout>
+  );
 }

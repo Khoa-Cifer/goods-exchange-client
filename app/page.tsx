@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge"
 import { ShoppingBag, Store, ArrowRight, Search, MapPin, Star, Heart, MessageCircle } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Input } from "@/components/ui/input"
+import { useAuth } from "@/context/auth-context"
+import { UserDropdown } from "@/components/user-dropdown"
 
 // Mock data for featured items
 const featuredItems = [
@@ -81,6 +83,8 @@ const featuredItems = [
 const categories = ["Electronics", "Fashion", "Sports", "Furniture", "Music", "Books", "Home"]
 
 export default function HomePage() {
+  const { accessToken, user, logout } = useAuth();
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
@@ -94,9 +98,15 @@ export default function HomePage() {
             <div className="flex gap-4 items-center">
               <ThemeToggle />
               <Link href="/login">
-                <Button className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600">
-                  Sign In
-                </Button>
+                {accessToken && user ? (
+                  <UserDropdown user={user} onLogout={logout} />
+                ) : (
+                  <Link href="/login">
+                    <Button className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600">
+                      Sign In
+                    </Button>
+                  </Link>
+                )}
               </Link>
             </div>
           </div>
