@@ -9,9 +9,13 @@ import Link from "next/link"
 import { Input } from "@/components/ui/input"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { useEffect, useState } from "react"
-import { getAllUsers } from "@/axios/user";
+import { assignRoleToUser, getAllUsers } from "@/axios/user";
 import { User } from "@/types/user";
 import { formatDate } from "@/lib/utils";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { showNotification } from "@/components/notification-helper";
 
 // Mock data for admin dashboard
 const systemStats = {
@@ -101,6 +105,32 @@ const pendingItems = [
 
 export default function AdminDashboard() {
   const [users, setUsers] = useState<User[]>([]);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [selectedRole, setSelectedRole] = useState("");
+  const [user, setUser] = useState<User | null>(null);
+
+  const handleAssignRole = (user: User) => {
+    setUser(user);
+    setOpenDialog(true);
+  };
+
+  const handleConfirmAssignRole = async () => {
+    if (!user || !selectedRole) return;
+    const response = await assignRoleToUser(user.id, selectedRole);
+    showNotification.success("Assign Role successfully", "Reload the user list.")
+    if (response) {
+      await fetchUsers(); // Refresh user list after assigning role
+    }
+    setOpenDialog(false);
+    setUser(null);
+    setSelectedRole("");
+  }
+
+  const handleRoleChange = (value: string) => {
+    if (!user) return;
+    setSelectedRole(value);
+    console.log("Selected role:", value, "for user:", user.id);
+  };
 
   const fetchUsers = async () => {
     const response = await getAllUsers();
@@ -110,6 +140,15 @@ export default function AdminDashboard() {
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  const handleView = (user: User) => {
+  }
+
+  const handleActivate = (user: User) => {
+  }
+
+  const handleSuspend = (user: User) => {
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -302,18 +341,33 @@ export default function AdminDashboard() {
                             <span className="flex items-center dark:text-white">⭐ 5</span>
                           </td>
                           <td className="py-3 px-4">
-                            <div className="flex gap-2">
-                              <Button variant="outline" size="sm" className="bg-transparent">
-                                View
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className={`bg-transparent ${user.isActive === 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
-                              >
-                                {user.isActive === 0 ? "Activate" : "Suspend"}
-                              </Button>
-                            </div>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="sm" className="bg-dark:bg-gray-700 dark:text-white">
+                                  Actions
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="start">
+                                <DropdownMenuItem onClick={() => handleView(user)}>
+                                  View
+                                </DropdownMenuItem>
+
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    user.isActive === 0 ? handleActivate(user) : handleSuspend(user)
+                                  }
+                                  className={`${user.isActive === 0
+                                    ? "text-green-600 dark:text-green-400"
+                                    : "text-red-600 dark:text-red-400"
+                                    }`}
+                                >
+                                  {user.isActive === 0 ? "Activate" : "Suspend"}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleAssignRole(user)} className="text-blue-600 dark:text-blue-400">
+                                  Assign Role
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </td>
                         </tr>
                       ))}
@@ -509,6 +563,26 @@ export default function AdminDashboard() {
               </Card>
             </div>
           </TabsContent>
+
+          {user && (
+            <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Assign Role to {user.username}</DialogTitle>
+                </DialogHeader>
+                <Select onValueChange={handleRoleChange}>
+                  <SelectTrigger className="w-full mt-4">
+                    <SelectValue placeholder="Select a role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Moderator">Moderator</SelectItem>
+                    <SelectItem value="Seller">Seller</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button variant={"secondary"} onClick={handleConfirmAssignRole}>Confirm</Button>
+              </DialogContent>
+            </Dialog>
+          )}
         </Tabs>
       </div>
     </div>
