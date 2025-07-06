@@ -9,7 +9,7 @@ import Link from "next/link"
 import { Input } from "@/components/ui/input"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { useEffect, useState } from "react"
-import { assignRoleToUser, getAllUsers, unassignRoleToUser } from "@/axios/user";
+import { assignRoleToUser, getAllCategories, getAllUsers, unassignRoleToUser } from "@/axios/admin";
 import { User } from "@/types/user";
 import { formatDate } from "@/lib/utils";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { showNotification } from "@/components/notification-helper";
 import { useAuth } from "@/context/auth-context";
 import { UserDropdown } from "@/components/user-dropdown";
+import { Category } from "@/types/category";
 
 // Mock data for admin dashboard
 const systemStats = {
@@ -109,6 +110,7 @@ export default function AdminDashboard() {
   const { authenticatedUser } = useAuth();
 
   const [users, setUsers] = useState<User[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [openAssignRoleDialog, setOpenAssignRoleDialog] = useState(false);
   const [openUnassignRoleDialog, setOpenUnassignRoleDialog] = useState(false);
   const [selectedRole, setSelectedRole] = useState("");
@@ -161,8 +163,13 @@ export default function AdminDashboard() {
     setUsers(response);
   }
 
+  const fetchCategories = async () => {
+    const response = await getAllCategories();
+    setCategories(response);
+  }
   useEffect(() => {
     fetchUsers();
+    fetchCategories();
   }, []);
 
   const handleView = (user: User) => {
@@ -176,84 +183,8 @@ export default function AdminDashboard() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* System Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-8">
-        <Card className="dark:bg-gray-800 dark:border-gray-700">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Users</p>
-                <p className="text-2xl font-bold dark:text-white">{systemStats.totalUsers.toLocaleString()}</p>
-              </div>
-              <Users className="w-8 h-8 text-blue-600 dark:text-blue-400" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="dark:bg-gray-800 dark:border-gray-700">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Active Users</p>
-                <p className="text-2xl font-bold dark:text-white">{systemStats.activeUsers.toLocaleString()}</p>
-              </div>
-              <TrendingUp className="w-8 h-8 text-green-600 dark:text-green-400" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="dark:bg-gray-800 dark:border-gray-700">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Items</p>
-                <p className="text-2xl font-bold dark:text-white">{systemStats.totalItems.toLocaleString()}</p>
-              </div>
-              <Package className="w-8 h-8 text-purple-600 dark:text-purple-400" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="dark:bg-gray-800 dark:border-gray-700">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Pending Items</p>
-                <p className="text-2xl font-bold dark:text-white">{systemStats.pendingItems}</p>
-              </div>
-              <Eye className="w-8 h-8 text-orange-600 dark:text-orange-400" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="dark:bg-gray-800 dark:border-gray-700">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Reported Items</p>
-                <p className="text-2xl font-bold dark:text-white">{systemStats.reportedItems}</p>
-              </div>
-              <AlertTriangle className="w-8 h-8 text-red-600 dark:text-red-400" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="dark:bg-gray-800 dark:border-gray-700">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Transactions</p>
-                <p className="text-2xl font-bold dark:text-white">{systemStats.totalTransactions}</p>
-              </div>
-              <CheckCircle className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Main Content Tabs */}
       <Tabs defaultValue="users" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 dark:bg-gray-800">
+        <TabsList className="grid w-full grid-cols-2 dark:bg-gray-800">
           <TabsTrigger
             value="users"
             className="dark:text-gray-300 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-white"
@@ -261,20 +192,13 @@ export default function AdminDashboard() {
             User Management
           </TabsTrigger>
           <TabsTrigger
-            value="items"
+            value="categories"
             className="dark:text-gray-300 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-white"
           >
-            Item Moderation
-          </TabsTrigger>
-          <TabsTrigger
-            value="analytics"
-            className="dark:text-gray-300 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-white"
-          >
-            Analytics
+            Categories
           </TabsTrigger>
         </TabsList>
 
-        {/* User Management Tab */}
         <TabsContent value="users" className="space-y-6">
           <Card className="dark:bg-gray-800 dark:border-gray-700">
             <CardHeader>
@@ -374,8 +298,54 @@ export default function AdminDashboard() {
           </Card>
         </TabsContent>
 
-        {/* Item Moderation Tab */}
-        <TabsContent value="items" className="space-y-6">
+        <TabsContent value="categories" className="space-y-6">
+          <Card className="dark:bg-gray-800 dark:border-gray-700">
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle className="dark:text-white">Post Category Management</CardTitle>
+                <div className="flex gap-2">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400 dark:text-gray-500" />
+                    <Input
+                      placeholder="Search users..."
+                      className="pl-10 w-64 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    />
+                  </div>
+                  <Button variant="outline" size="sm" className="bg-transparent">
+                    <Filter className="w-4 h-4 mr-2" />
+                    Filter
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b dark:border-gray-700">
+                      <th className="text-left py-3 px-4 dark:text-white">Name</th>
+                      <th className="text-left py-3 px-4 dark:text-white">Created At</th>
+                      <th className="text-left py-3 px-4 dark:text-white">Updated At</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {categories && categories.length > 0 && categories.map && categories.map((category) => (
+                      <tr
+                        key={category.id}
+                        className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+                      >
+                        <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-300">{category.name}</td>
+                        <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-300">{formatDate(category.createdAt)}</td>
+                        <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-300">{formatDate(category.updatedAt)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        {/* <TabsContent value="categories" className="space-y-6">
           <Card className="dark:bg-gray-800 dark:border-gray-700">
             <CardHeader>
               <div className="flex justify-between items-center">
@@ -434,131 +404,7 @@ export default function AdminDashboard() {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
-
-        {/* Analytics Tab */}
-        <TabsContent value="analytics" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="dark:bg-gray-800 dark:border-gray-700">
-              <CardHeader>
-                <CardTitle className="dark:text-white">User Growth</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-64 flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-lg">
-                  <p className="text-gray-500 dark:text-gray-400">User Growth Chart Placeholder</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="dark:bg-gray-800 dark:border-gray-700">
-              <CardHeader>
-                <CardTitle className="dark:text-white">Item Categories</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="dark:text-white">Electronics</span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-24 h-2 bg-gray-200 dark:bg-gray-600 rounded-full">
-                        <div className="w-16 h-2 bg-blue-600 dark:bg-blue-400 rounded-full"></div>
-                      </div>
-                      <span className="text-sm text-gray-600 dark:text-gray-300">67%</span>
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="dark:text-white">Fashion</span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-24 h-2 bg-gray-200 dark:bg-gray-600 rounded-full">
-                        <div className="w-12 h-2 bg-green-600 dark:bg-green-400 rounded-full"></div>
-                      </div>
-                      <span className="text-sm text-gray-600 dark:text-gray-300">50%</span>
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="dark:text-white">Sports</span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-24 h-2 bg-gray-200 dark:bg-gray-600 rounded-full">
-                        <div className="w-8 h-2 bg-purple-600 dark:bg-purple-400 rounded-full"></div>
-                      </div>
-                      <span className="text-sm text-gray-600 dark:text-gray-300">33%</span>
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="dark:text-white">Furniture</span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-24 h-2 bg-gray-200 dark:bg-gray-600 rounded-full">
-                        <div className="w-6 h-2 bg-orange-600 dark:bg-orange-400 rounded-full"></div>
-                      </div>
-                      <span className="text-sm text-gray-600 dark:text-gray-300">25%</span>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="dark:bg-gray-800 dark:border-gray-700">
-              <CardHeader>
-                <CardTitle className="dark:text-white">Recent Activity</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3 text-sm">
-                    <div className="w-2 h-2 bg-green-600 dark:bg-green-400 rounded-full"></div>
-                    <span className="dark:text-white">New user registered: john@example.com</span>
-                    <span className="text-gray-500 dark:text-gray-400 ml-auto">2 min ago</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-sm">
-                    <div className="w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full"></div>
-                    <span className="dark:text-white">Item approved: MacBook Pro 2021</span>
-                    <span className="text-gray-500 dark:text-gray-400 ml-auto">5 min ago</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-sm">
-                    <div className="w-2 h-2 bg-red-600 dark:bg-red-400 rounded-full"></div>
-                    <span className="dark:text-white">Item reported: Suspicious listing</span>
-                    <span className="text-gray-500 dark:text-gray-400 ml-auto">10 min ago</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-sm">
-                    <div className="w-2 h-2 bg-purple-600 dark:bg-purple-400 rounded-full"></div>
-                    <span className="dark:text-white">User suspended: mike@example.com</span>
-                    <span className="text-gray-500 dark:text-gray-400 ml-auto">15 min ago</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="dark:bg-gray-800 dark:border-gray-700">
-              <CardHeader>
-                <CardTitle className="dark:text-white">System Health</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="dark:text-white">Server Status</span>
-                    <Badge variant="default" className="bg-green-600 dark:bg-green-700">
-                      Online
-                    </Badge>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="dark:text-white">Database</span>
-                    <Badge variant="default" className="bg-green-600 dark:bg-green-700">
-                      Healthy
-                    </Badge>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="dark:text-white">Storage</span>
-                    <Badge variant="secondary">78% Used</Badge>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="dark:text-white">API Response</span>
-                    <Badge variant="default" className="bg-green-600 dark:bg-green-700">
-                      Fast
-                    </Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
+        </TabsContent> */}
 
         {selectedUser && (
           <Dialog open={openUnassignRoleDialog} onOpenChange={setOpenUnassignRoleDialog}>

@@ -2,7 +2,7 @@ import http from "./http";
 
 export const getAllUsers = async () => {
   try {
-    const response = await http.get('/users/all-users');
+    const response = await http.get('/admin/users/all-users');
     return response.data.result;
   } catch (error) {
     console.error('Failed to fetch users:', error);
@@ -12,7 +12,7 @@ export const getAllUsers = async () => {
 
 export const banUser = async (userId: string) => {
   try {
-    const response = await http.put('/users/ban-user', { userId });
+    const response = await http.put('/admin/users/ban-user', { userId });
     return response.data;
   } catch (error) {
     console.error('Failed to ban user:', error);
@@ -22,7 +22,7 @@ export const banUser = async (userId: string) => {
 
 export const unbanUser = async (userId: string) => {
   try {
-    const response = await http.put('/users/unban-user', { userId });
+    const response = await http.put('/admin/users/unban-user', { userId });
     return response.data;
   } catch (error) {
     console.error('Failed to unban user:', error);
@@ -32,7 +32,7 @@ export const unbanUser = async (userId: string) => {
 
 export const assignRoleToUser = async (userId: string, roleName: string) => {
   try {
-    const response = await http.put('/users/assign-role', { userId, roleName });
+    const response = await http.put('/admin/users/assign-role', { userId, roleName });
     return response.data;
   } catch (error) {
     console.error('Failed to assign role to user:', error);
@@ -42,11 +42,21 @@ export const assignRoleToUser = async (userId: string, roleName: string) => {
 
 export const unassignRoleToUser = async (userId: string, roleName: string) => {
   try {
-    const response = await http.put('/users/unassign-role', { userId, roleName });
+    const response = await http.put('/admin/users/unassign-role', { userId, roleName });
     return response.data;
   }
   catch (error) {
     console.error('Failed to unassign role from user:', error);
+    throw error;
+  }
+}
+
+export const getAllCategories = async () => {
+  try {
+    const response = await http.get('/admin/categories/all-categories');
+    return response.data.result;
+  } catch (error) {
+    console.error('Failed to fetch users:', error);
     throw error;
   }
 }
