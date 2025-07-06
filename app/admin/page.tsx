@@ -9,13 +9,14 @@ import Link from "next/link"
 import { Input } from "@/components/ui/input"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { useEffect, useState } from "react"
-import { assignRoleToUser, getAllUsers } from "@/axios/user";
+import { assignRoleToUser, getAllUsers, unassignRoleToUser } from "@/axios/user";
 import { User } from "@/types/user";
 import { formatDate } from "@/lib/utils";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { showNotification } from "@/components/notification-helper";
+import { useAuth } from "@/context/auth-context";
 
 // Mock data for admin dashboard
 const systemStats = {
@@ -104,32 +105,54 @@ const pendingItems = [
 ]
 
 export default function AdminDashboard() {
+  const { authenticatedUser } = useAuth();
+
   const [users, setUsers] = useState<User[]>([]);
-  const [openDialog, setOpenDialog] = useState(false);
+  const [openAssignRoleDialog, setOpenAssignRoleDialog] = useState(false);
+  const [openUnassignRoleDialog, setOpenUnassignRoleDialog] = useState(false);
   const [selectedRole, setSelectedRole] = useState("");
-  const [user, setUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUnassignedRole, setSelectedUnassignedRole] = useState("");
+
+  const handleUnassignRole = (user: User, role: string) => {
+    setSelectedUser(user);
+    setSelectedUnassignedRole(role);
+    setOpenUnassignRoleDialog(true);
+  };
+
+  const handleConfirmUnassignRole = async () => {
+    if (!selectedUser || !selectedUnassignedRole) return;
+    const response = await unassignRoleToUser(selectedUser.id, selectedUnassignedRole);
+    showNotification.success("Unassign Role successfully", "Reload the user list.")
+    if (response) {
+      await fetchUsers(); // Refresh user list after assigning role
+    }
+    setOpenUnassignRoleDialog(false);
+    setSelectedUser(null);
+    setSelectedUnassignedRole("");
+  }
 
   const handleAssignRole = (user: User) => {
-    setUser(user);
-    setOpenDialog(true);
+    setSelectedUser(user);
+    setOpenAssignRoleDialog(true);
   };
 
   const handleConfirmAssignRole = async () => {
-    if (!user || !selectedRole) return;
-    const response = await assignRoleToUser(user.id, selectedRole);
+    if (!selectedUser || !selectedRole) return;
+    const response = await assignRoleToUser(selectedUser.id, selectedRole);
     showNotification.success("Assign Role successfully", "Reload the user list.")
     if (response) {
       await fetchUsers(); // Refresh user list after assigning role
     }
-    setOpenDialog(false);
-    setUser(null);
+    setOpenAssignRoleDialog(false);
+    setSelectedUser(null);
     setSelectedRole("");
   }
 
   const handleRoleChange = (value: string) => {
-    if (!user) return;
+    if (!selectedUser) return;
     setSelectedRole(value);
-    console.log("Selected role:", value, "for user:", user.id);
+    console.log("Selected role:", value, "for user:", selectedUser.id);
   };
 
   const fetchUsers = async () => {
@@ -329,7 +352,7 @@ export default function AdminDashboard() {
                           </td>
                           <td className="py-3 px-4">
                             {user.userRoles && user.userRoles.length > 0 && user.userRoles.map && user.userRoles.map((role) => (
-                              <Badge>{role.role.name}</Badge>
+                              <Badge onClick={() => handleUnassignRole(user, role.role.name)}>{role.role.name}</Badge>
                             ))}
                           </td>
                           <td className="py-3 px-4">
@@ -341,33 +364,35 @@ export default function AdminDashboard() {
                             <span className="flex items-center dark:text-white">⭐ 5</span>
                           </td>
                           <td className="py-3 px-4">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="outline" size="sm" className="bg-dark:bg-gray-700 dark:text-white">
-                                  Actions
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="start">
-                                <DropdownMenuItem onClick={() => handleView(user)}>
-                                  View
-                                </DropdownMenuItem>
+                            {authenticatedUser?.googleId !== user.googleId && user.email !== process.env.NEXT_PUBLIC_ADMIN_EMAIL && (
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="outline" size="sm" className="bg-dark:bg-gray-700 dark:text-white">
+                                    Actions
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="start">
+                                  <DropdownMenuItem onClick={() => handleView(user)}>
+                                    View
+                                  </DropdownMenuItem>
 
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    user.isActive === 0 ? handleActivate(user) : handleSuspend(user)
-                                  }
-                                  className={`${user.isActive === 0
-                                    ? "text-green-600 dark:text-green-400"
-                                    : "text-red-600 dark:text-red-400"
-                                    }`}
-                                >
-                                  {user.isActive === 0 ? "Activate" : "Suspend"}
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleAssignRole(user)} className="text-blue-600 dark:text-blue-400">
-                                  Assign Role
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      user.isActive === 0 ? handleActivate(user) : handleSuspend(user)
+                                    }
+                                    className={`${user.isActive === 0
+                                      ? "text-green-600 dark:text-green-400"
+                                      : "text-red-600 dark:text-red-400"
+                                      }`}
+                                  >
+                                    {user.isActive === 0 ? "Activate" : "Suspend"}
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleAssignRole(user)} className="text-blue-600 dark:text-blue-400">
+                                    Assign Role
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            )}
                           </td>
                         </tr>
                       ))}
@@ -564,11 +589,38 @@ export default function AdminDashboard() {
             </div>
           </TabsContent>
 
-          {user && (
-            <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+          {selectedUser && (
+            <Dialog open={openUnassignRoleDialog} onOpenChange={setOpenUnassignRoleDialog}>
+              {selectedUser.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL ? (
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Cannot modify admin's roles</DialogTitle>
+                  </DialogHeader>
+                  <Button variant={"secondary"} onClick={() => setOpenUnassignRoleDialog(false)}>Close</Button>
+                </DialogContent>
+              ) : selectedUser.email === authenticatedUser?.email ? (
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Cannot assign role to yourself</DialogTitle>
+                  </DialogHeader>
+                  <Button variant={"secondary"} onClick={() => setOpenUnassignRoleDialog(false)}>Close</Button>
+                </DialogContent>
+              ) : (
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Unassign Role {selectedUnassignedRole} from {selectedUser.username}</DialogTitle>
+                  </DialogHeader>
+                  <Button variant={"secondary"} onClick={handleConfirmUnassignRole}>Confirm</Button>
+                </DialogContent>
+              )}
+            </Dialog>
+          )}
+
+          {selectedUser && (
+            <Dialog open={openAssignRoleDialog} onOpenChange={setOpenAssignRoleDialog}>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Assign Role to {user.username}</DialogTitle>
+                  <DialogTitle>Assign Role to {selectedUser.username}</DialogTitle>
                 </DialogHeader>
                 <Select onValueChange={handleRoleChange}>
                   <SelectTrigger className="w-full mt-4">

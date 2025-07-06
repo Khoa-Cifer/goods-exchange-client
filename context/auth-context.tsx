@@ -9,7 +9,7 @@ import { jwtDecode } from 'jwt-decode';
 interface AuthContextType {
     login: (googleResponse: any) => Promise<any>;
     logout: () => Promise<void>;
-    user: UserTokenData | null;
+    authenticatedUser: UserTokenData | null;
     accessToken: string | null;
 }
 
@@ -57,7 +57,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     return (
-        <AuthContext.Provider value={{ login, logout, user: currentUser, accessToken: accessTokenState }}>
+        <AuthContext.Provider value={{ login, logout, authenticatedUser: currentUser, accessToken: accessTokenState }}>
             {children}
         </AuthContext.Provider>
     );

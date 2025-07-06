@@ -83,7 +83,7 @@ const featuredItems = [
 const categories = ["Electronics", "Fashion", "Sports", "Furniture", "Music", "Books", "Home"]
 
 export default function HomePage() {
-  const { accessToken, user, logout } = useAuth();
+  const { accessToken, authenticatedUser: user, logout } = useAuth();
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">

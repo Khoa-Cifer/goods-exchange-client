@@ -77,7 +77,7 @@ const availableItems = [
 const categories = ["All", "Electronics", "Fashion", "Sports", "Furniture", "Music", "Books", "Home"]
 
 export default function BuyerDashboard() {
-  const { user, logout } = useAuth();
+  const { authenticatedUser: user, logout } = useAuth();
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">

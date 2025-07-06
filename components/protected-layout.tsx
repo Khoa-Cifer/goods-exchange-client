@@ -11,7 +11,7 @@ interface ProtectedLayoutProps {
 }
 
 export default function ProtectedLayout({ children, allowedRoles }: ProtectedLayoutProps) {
-    const { accessToken, user } = useAuth();
+    const { accessToken, authenticatedUser: user } = useAuth();
     if (!accessToken || !user) {
         console.warn('ProtectedLayout: No user found, redirecting to login.');
         redirect('/');
