@@ -22,8 +22,8 @@ interface UserDropdownProps {
 }
 
 export function UserDropdown({ user, onLogout }: UserDropdownProps) {
-  console.log(user);
   const [userRoles, setUserRoles] = useState<string[]>([]);
+
   useEffect(() => {
     if (user && user.roleName) {
       try {

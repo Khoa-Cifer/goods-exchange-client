@@ -18,10 +18,8 @@ export default function ProtectedLayout({ children, allowedRoles }: ProtectedLay
     }
 
     const roleArray = JSON.parse(user.roleName);
-    console.log('ProtectedLayout: User roles:', roleArray);
     if (!roleArray.some((roleName: string) => allowedRoles.includes(roleName))) {
         console.warn('ProtectedLayout: Unauthorized access, redirecting to home.');
-        redirect('/');
     }
 
     return <>{children}</>;

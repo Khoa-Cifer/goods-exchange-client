@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge"
 import { Search, Filter, Heart, MessageCircle, MapPin } from "lucide-react"
 import Link from "next/link"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { UserDropdown } from "@/components/user-dropdown";
+import { useAuth } from "@/context/auth-context";
 
 // Mock data for available items
 const availableItems = [
@@ -75,6 +77,8 @@ const availableItems = [
 const categories = ["All", "Electronics", "Fashion", "Sports", "Furniture", "Music", "Books", "Home"]
 
 export default function BuyerDashboard() {
+  const { user, logout } = useAuth();
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <header className="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700">
@@ -86,16 +90,9 @@ export default function BuyerDashboard() {
             </div>
             <div className="flex gap-4">
               <ThemeToggle />
-              <Link href="/seller">
-                <Button variant="outline" className="bg-transparent">
-                  Sell Items
-                </Button>
-              </Link>
-              <Link href="/">
-                <Button variant="outline" className="bg-transparent">
-                  Home
-                </Button>
-              </Link>
+              {user && (
+                <UserDropdown user={user} onLogout={logout} />
+              )}
             </div>
           </div>
         </div>

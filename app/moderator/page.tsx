@@ -1,5 +1,3 @@
-'use client';
-
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -8,10 +6,6 @@ import { Users, Package, AlertTriangle, TrendingUp, Eye, CheckCircle, XCircle, S
 import Link from "next/link"
 import { Input } from "@/components/ui/input"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { useEffect, useState } from "react"
-import { getAllUsers } from "@/axios/user";
-import { User } from "@/types/user";
-import { formatDate } from "@/lib/utils";
 
 // Mock data for admin dashboard
 const systemStats = {
@@ -100,17 +94,6 @@ const pendingItems = [
 ]
 
 export default function AdminDashboard() {
-  const [users, setUsers] = useState<User[]>([]);
-
-  const fetchUsers = async () => {
-    const response = await getAllUsers();
-    setUsers(response);
-  }
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <header className="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700">
@@ -277,29 +260,27 @@ export default function AdminDashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {users && users.length > 0 && users.map && users.map((user) => (
+                      {recentUsers.map((user) => (
                         <tr
                           key={user.id}
                           className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
                         >
                           <td className="py-3 px-4">
                             <div>
-                              <p className="font-medium dark:text-white">{user.username}</p>
+                              <p className="font-medium dark:text-white">{user.name}</p>
                               <p className="text-sm text-gray-600 dark:text-gray-300">{user.email}</p>
                             </div>
                           </td>
                           <td className="py-3 px-4">
-                            {user.userRoles && user.userRoles.length > 0 && user.userRoles.map && user.userRoles.map((role) => (
-                              <Badge>{role.role.name}</Badge>
-                            ))}
+                            <Badge variant={user.role === "seller" ? "default" : "secondary"}>{user.role}</Badge>
                           </td>
                           <td className="py-3 px-4">
-                            <Badge variant={user.isActive === 1 ? "default" : "destructive"}>{user.isActive === 1 ? "Active" : "Suspended"}</Badge>
+                            <Badge variant={user.status === "active" ? "default" : "destructive"}>{user.status}</Badge>
                           </td>
-                          <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-300">{formatDate(user.createdAt)}</td>
-                          <td className="py-3 px-4 dark:text-white">0</td> {/* Placeholder for items listed, as we don't have that data in the user object */}
+                          <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-300">{user.joinDate}</td>
+                          <td className="py-3 px-4 dark:text-white">{user.itemsListed}</td>
                           <td className="py-3 px-4">
-                            <span className="flex items-center dark:text-white">⭐ 5</span>
+                            <span className="flex items-center dark:text-white">⭐ {user.rating}</span>
                           </td>
                           <td className="py-3 px-4">
                             <div className="flex gap-2">
@@ -309,9 +290,9 @@ export default function AdminDashboard() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className={`bg-transparent ${user.isActive === 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
+                                className={`bg-transparent ${user.status === "suspended" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
                               >
-                                {user.isActive === 0 ? "Activate" : "Suspend"}
+                                {user.status === "suspended" ? "Activate" : "Suspend"}
                               </Button>
                             </div>
                           </td>
