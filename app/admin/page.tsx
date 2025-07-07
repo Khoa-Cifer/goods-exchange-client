@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Search, Filter, Calendar, DollarSign, Eye, FileText, MapPin, Tag, XCircle } from "lucide-react"
+import { Search, Filter, Calendar, DollarSign, Eye, FileText, MapPin, Tag, XCircle, CheckCircle, Package } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { useEffect, useState } from "react"
 import { assignRoleToUser, getAllUsers, unassignRoleToUser } from "@/axios/admin";
@@ -19,6 +19,7 @@ import { Category } from "@/types/category";
 import { getAllCategories } from "@/axios/user";
 import { getAllPosts } from "@/axios/post";
 import { Post } from "@/types/post";
+import { AdminPostCard } from "@/components/admin-post-card";
 
 export default function AdminDashboard() {
   const { authenticatedUser } = useAuth();
@@ -41,9 +42,9 @@ export default function AdminDashboard() {
     setOpenUnassignRoleDialog(true);
   };
 
-  const handleViewPreviewImage = (base64: string) => {
+  const handleViewPreviewImage = (base64Image: string) => {
     setShowPreviewImage(true);
-    setImageBase64(base64);
+    setImageBase64(base64Image);
   }
 
   const handleConfirmUnassignRole = async () => {
@@ -305,130 +306,130 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {posts && posts.map && posts.map((post) => (
-                  <div
-                    key={post.id}
-                    className="border dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700"
-                  >
-                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-                      {/* Post Info */}
-                      <div className="lg:col-span-2">
-                        <div className="flex items-start justify-between mb-2">
-                          <h3 className="font-semibold text-lg dark:text-white">{post.title}</h3>
-                          <div className="flex gap-2">
-                            <Badge
-                              variant={
-                                post.status === 1 ? "default" : post.status === 2 ? "secondary" : "destructive"
-                              }
-                            >
-                              {post.status === 1 ? "Active" : post.status === 2 ? "Sold" : "Inactive"}
-                            </Badge>
-                            <Badge variant="outline">
-                              {post.type === 1 ? "Sell" : post.type === 2 ? "Buy" : "Exchange"}
-                            </Badge>
-                          </div>
-                        </div>
-                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-3 line-clamp-2">
-                          {post.description}
-                        </p>
+                <Tabs defaultValue="all" className="w-full">
+                  <TabsList className="grid w-full grid-cols-5 mb-6 dark:bg-gray-700">
+                    <TabsTrigger
+                      value="all"
+                      className="dark:text-gray-300 dark:data-[state=active]:bg-gray-600 dark:data-[state=active]:text-white"
+                    >
+                      All Posts ({posts.length})
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="created"
+                      className="dark:text-gray-300 dark:data-[state=active]:bg-gray-600 dark:data-[state=active]:text-white"
+                    >
+                      Created ({posts.filter((p) => p.status === 1).length})
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="confirmed"
+                      className="dark:text-gray-300 dark:data-[state=active]:bg-gray-600 dark:data-[state=active]:text-white"
+                    >
+                      Confirmed ({posts.filter((p) => p.status === 2).length})
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="completed"
+                      className="dark:text-gray-300 dark:data-[state=active]:bg-gray-600 dark:data-[state=active]:text-white"
+                    >
+                      Completed ({posts.filter((p) => p.status === 3).length})
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="rejected"
+                      className="dark:text-gray-300 dark:data-[state=active]:bg-gray-600 dark:data-[state=active]:text-white"
+                    >
+                      Rejected ({posts.filter((p) => p.status === 0).length})
+                    </TabsTrigger>
+                  </TabsList>
 
-                        {/* Post Details */}
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div className="flex items-center text-gray-600 dark:text-gray-300">
-                            <DollarSign className="w-4 h-4 mr-1" />
-                            <span className="font-semibold text-green-600 dark:text-green-400">${post.price}</span>
-                          </div>
-                          <div className="flex items-center text-gray-600 dark:text-gray-300">
-                            <MapPin className="w-4 h-4 mr-1" />
-                            {post.campus}
-                          </div>
-                          <div className="flex items-center text-gray-600 dark:text-gray-300">
-                            <Calendar className="w-4 h-4 mr-1" />
-                            {formatDate(post.createdAt)}
-                          </div>
-                          <div className="flex items-center text-gray-600 dark:text-gray-300">
-                            <FileText className="w-4 h-4 mr-1" />
-                            {post.images.length} image{post.images.length !== 1 ? "s" : ""}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Categories */}
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Categories</h4>
-                        <div className="flex flex-wrap gap-1">
-                          {post.postCategories.map((pc) => (
-                            <Badge key={pc.id} variant="secondary" className="text-xs">
-                              <Tag className="w-3 h-3 mr-1" />
-                              {pc.category.name}
-                            </Badge>
-                          ))}
-                        </div>
-
-                        {/* Images Preview */}
-                        {post.images.length > 0 && (
-                          <div className="mt-3">
-                            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Images</h4>
-                            <div className="flex flex-wrap gap-1">
-                              {post.images.slice(0, 3).map((image, index) => (
-                                <button
-                                  key={image.id}
-                                  onClick={() => handleViewPreviewImage(image.imageBase64)}
-                                  className="w-12 h-12 bg-gray-200 dark:bg-gray-600 rounded border flex items-center justify-center text-xs text-gray-500 dark:text-gray-400"
-                                >
-                                  {index + 1}
-                                </button>
-                              ))}
-                              {post.images.length > 3 && (
-                                <div className="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded border flex items-center justify-center text-xs text-gray-500 dark:text-gray-400">
-                                  +{post.images.length - 3}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex flex-col gap-2">
-                        <Button variant="outline" size="sm" className="bg-transparent">
-                          <Eye className="w-4 h-4 mr-2" />
-                          View Details
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className={`bg-transparent ${post.status === 1 ? "text-orange-600 dark:text-orange-400" : "text-green-600 dark:text-green-400"}`}
-                        >
-                          {post.status === 1 ? "Deactivate" : "Activate"}
-                        </Button>
-                        <Button variant="outline" size="sm" className="text-red-600 dark:text-red-400 bg-transparent">
-                          <XCircle className="w-4 h-4 mr-2" />
-                          Delete
-                        </Button>
+                  {/* All Posts */}
+                  <TabsContent value="all" className="space-y-4">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-semibold dark:text-white">All Posts</h3>
+                      <div className="flex gap-2">
+                        <Badge variant="default">{posts.length} Total</Badge>
+                        <Badge variant="secondary">{posts.filter((p) => p.status === 1).length} Created</Badge>
+                        <Badge variant="secondary">{posts.filter((p) => p.status === 2).length} Confirmed</Badge>
+                        <Badge variant="secondary">{posts.filter((p) => p.status === 3).length} Completed</Badge>
+                        <Badge variant="destructive">{posts.filter((p) => p.status === 0).length} Rejected</Badge>
                       </div>
                     </div>
+                    {posts && posts.map && posts
+                      .map((post) => (
+                        <AdminPostCard key={post.id} post={post} onSelectPreviewImage={handleViewPreviewImage} />
+                      ))}
+                  </TabsContent>
 
-                    {/* Timestamps */}
-                    <div className="mt-4 pt-3 border-t dark:border-gray-600 flex justify-between text-xs text-gray-500 dark:text-gray-400">
-                      <span>Created: {post.createdAt.toLocaleString()}</span>
-                      <span>Updated: {post.updatedAt.toLocaleString()}</span>
+                  <TabsContent value="created" className="space-y-4">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-semibold dark:text-white">Active Posts</h3>
+                      <Badge variant="secondary">{posts.filter((p) => p.status === 1).length} Posts</Badge>
                     </div>
-                  </div>
-                ))}
-              </div>
+                    {posts && posts.map && posts
+                      .filter((post) => post.status === 1)
+                      .map((post) => (
+                        <AdminPostCard key={post.id} post={post} onSelectPreviewImage={handleViewPreviewImage} />
+                      ))}
+                    {posts.filter((post) => post.status === 1).length === 0 && (
+                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                        <Package className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                        <p>No active posts found</p>
+                      </div>
+                    )}
+                  </TabsContent>
 
-              {/* Pagination */}
-              <div className="flex justify-between items-center mt-6 pt-4 border-t dark:border-gray-700">
-                <div className="text-sm text-gray-600 dark:text-gray-300">Showing 1-4 of 4 posts</div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" disabled className="bg-transparent">
-                    Previous
-                  </Button>
-                  <Button variant="outline" size="sm" disabled className="bg-transparent">
-                    Next
-                  </Button>
-                </div>
+                  <TabsContent value="confirmed" className="space-y-4">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-semibold dark:text-white">Confirmed Posts</h3>
+                      <Badge variant="secondary">{posts.filter((p) => p.status === 2).length} Posts</Badge>
+                    </div>
+                    {posts && posts.map && posts
+                      .filter((post) => post.status === 2)
+                      .map((post) => (
+                        <AdminPostCard key={post.id} post={post} onSelectPreviewImage={handleViewPreviewImage} />
+                      ))}
+                    {posts.filter((post) => post.status === 2).length === 0 && (
+                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                        <CheckCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                        <p>No sold posts found</p>
+                      </div>
+                    )}
+                  </TabsContent>
+
+                  <TabsContent value="completed" className="space-y-4">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-semibold dark:text-white">Completed Posts</h3>
+                      <Badge variant="secondary">{posts.filter((p) => p.status === 2).length} Posts</Badge>
+                    </div>
+                    {posts && posts.map && posts
+                      .filter((post) => post.status === 2)
+                      .map((post) => (
+                        <AdminPostCard key={post.id} post={post} onSelectPreviewImage={handleViewPreviewImage} />
+                      ))}
+                    {posts.filter((post) => post.status === 2).length === 0 && (
+                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                        <CheckCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                        <p>No sold posts found</p>
+                      </div>
+                    )}
+                  </TabsContent>
+
+                  <TabsContent value="rejected" className="space-y-4">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-semibold dark:text-white">Rejected Posts</h3>
+                      <Badge variant="destructive">{posts.filter((p) => p.status === 0).length} Posts</Badge>
+                    </div>
+                    {posts && posts.map && posts
+                      .filter((post) => post.status === 0)
+                      .map((post) => (
+                        <AdminPostCard key={post.id} post={post} onSelectPreviewImage={handleViewPreviewImage} />
+                      ))}
+                    {posts.filter((post) => post.status === 0).length === 0 && (
+                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                        <XCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                        <p>No inactive posts found</p>
+                      </div>
+                    )}
+                  </TabsContent>
+                </Tabs>
               </div>
             </CardContent>
           </Card>
