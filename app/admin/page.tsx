@@ -4,12 +4,10 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Users, Package, AlertTriangle, TrendingUp, Eye, CheckCircle, XCircle, Search, Filter } from "lucide-react"
-import Link from "next/link"
+import { Search, Filter } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { ThemeToggle } from "@/components/theme-toggle"
 import { useEffect, useState } from "react"
-import { assignRoleToUser, getAllCategories, getAllUsers, unassignRoleToUser } from "@/axios/admin";
+import { assignRoleToUser, getAllUsers, unassignRoleToUser } from "@/axios/admin";
 import { User } from "@/types/user";
 import { formatDate } from "@/lib/utils";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -17,94 +15,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { showNotification } from "@/components/notification-helper";
 import { useAuth } from "@/context/auth-context";
-import { UserDropdown } from "@/components/user-dropdown";
 import { Category } from "@/types/category";
-
-// Mock data for admin dashboard
-const systemStats = {
-  totalUsers: 1247,
-  activeUsers: 892,
-  totalItems: 3456,
-  pendingItems: 23,
-  reportedItems: 8,
-  totalTransactions: 567,
-}
-
-const recentUsers = [
-  {
-    id: 1,
-    name: "John Smith",
-    email: "john@example.com",
-    role: "seller",
-    status: "active",
-    joinDate: "2024-01-15",
-    itemsListed: 12,
-    rating: 4.8,
-  },
-  {
-    id: 2,
-    name: "Sarah Johnson",
-    email: "sarah@example.com",
-    role: "buyer",
-    status: "active",
-    joinDate: "2024-01-10",
-    itemsListed: 0,
-    rating: 4.9,
-  },
-  {
-    id: 3,
-    name: "Mike Wilson",
-    email: "mike@example.com",
-    role: "seller",
-    status: "suspended",
-    joinDate: "2024-01-08",
-    itemsListed: 5,
-    rating: 3.2,
-  },
-  {
-    id: 4,
-    name: "Emma Davis",
-    email: "emma@example.com",
-    role: "buyer",
-    status: "active",
-    joinDate: "2024-01-12",
-    itemsListed: 0,
-    rating: 4.7,
-  },
-]
-
-const pendingItems = [
-  {
-    id: 1,
-    title: "iPhone 15 Pro",
-    seller: "TechDealer",
-    price: 999,
-    category: "Electronics",
-    submittedDate: "2024-01-16",
-    status: "pending",
-    image: "/placeholder.svg?height=100&width=100",
-  },
-  {
-    id: 2,
-    title: "Vintage Watch",
-    seller: "CollectorPro",
-    price: 450,
-    category: "Fashion",
-    submittedDate: "2024-01-15",
-    status: "pending",
-    image: "/placeholder.svg?height=100&width=100",
-  },
-  {
-    id: 3,
-    title: "Gaming Chair",
-    seller: "GamerHub",
-    price: 200,
-    category: "Furniture",
-    submittedDate: "2024-01-14",
-    status: "flagged",
-    image: "/placeholder.svg?height=100&width=100",
-  },
-]
+import { getAllCategories } from "@/axios/user";
 
 export default function AdminDashboard() {
   const { authenticatedUser } = useAuth();
@@ -167,6 +79,7 @@ export default function AdminDashboard() {
     const response = await getAllCategories();
     setCategories(response);
   }
+
   useEffect(() => {
     fetchUsers();
     fetchCategories();

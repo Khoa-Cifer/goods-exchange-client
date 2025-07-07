@@ -50,13 +50,3 @@ export const unassignRoleToUser = async (userId: string, roleName: string) => {
     throw error;
   }
 }
-
-export const getAllCategories = async () => {
-  try {
-    const response = await http.get('/admin/categories/all-categories');
-    return response.data.result;
-  } catch (error) {
-    console.error('Failed to fetch users:', error);
-    throw error;
-  }
-}

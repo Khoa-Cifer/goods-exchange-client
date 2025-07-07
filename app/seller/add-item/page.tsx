@@ -2,31 +2,54 @@
 
 import type React from "react"
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Upload, ArrowLeft } from "lucide-react"
+import { Upload, ArrowLeft, ChevronsUpDown, Check } from "lucide-react"
 import Link from "next/link"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { ImageFile } from "@/types/image"
+import { PostType } from "@/enum/post-type"
+import { Category } from "@/types/category"
+import { getAllCategories } from "@/axios/user"
+import { Badge } from "@/components/ui/badge"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui/command"
+import { PostCampus } from "@/enum/post-campus"
+import { showNotification } from "@/components/notification-helper"
+import { createPost } from "@/axios/post"
 
 export default function AddItem() {
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    price: "",
-    category: "",
-    condition: "",
-    location: "",
-  })
+  const [categories, setCategories] = useState<Category[]>([]);
 
+  const [title, setTitle] = useState<string>("");
+  const [description, setDescription] = useState<string>("");
+  const [price, setPrice] = useState<string>("");
   const [images, setImages] = useState<ImageFile[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
+  const [campus, setCampus] = useState<string>("");
+  const [type, setType] = useState<string>("");
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const fileUpdateRef = useRef<HTMLInputElement>(null);
+
+  const handleSelect = (categoryId: string) => {
+    const category = categories.find((cat) => cat.id === categoryId);
+    if (!category) return;
+    setSelectedCategories((prev) =>
+      prev.some((cat) => cat.id === categoryId)
+        ? prev.filter((cat) => cat.id !== categoryId)
+        : [...prev, category]
+    );
+  };
+
+  const handleRemove = (categoryId: string) => {
+    setSelectedCategories(selectedCategories.filter((cat) => cat.id !== categoryId));
+  };
 
   const handleFilesChange = async (event: React.ChangeEvent<HTMLInputElement>, replaceIndex: string | undefined = "") => {
     const files = event.target.files ? Array.from(event.target.files) : [];
@@ -87,8 +110,50 @@ export default function AddItem() {
     }
   };
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
+  const fetchCategories = async () => {
+    const response = await getAllCategories();
+    setCategories(response);
+  }
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const handleCreatePost = async () => {
+    if (
+      title.trim().length === 0 ||
+      description.trim().length === 0 ||
+      price.trim().length === 0 ||
+      campus.length === 0 ||
+      type.length === 0 ||
+      selectedCategories.length === 0 ||
+      images.length === 0
+    ) {
+      showNotification.warning("Please fill in all required fields and add at least one image.")
+      return;
+    }
+
+    try {
+      const payload = {
+        title,
+        description,
+        price: parseFloat(price),
+        images: images
+          .filter(img => typeof img.base64 === "string" && img.base64 !== null)
+          .map(img => ({
+            name: img.name,
+            base64: img.base64 as string,
+          })),
+        campus,
+        type,
+        categories: selectedCategories.map(cat => cat.id),
+      };
+      const result = await createPost(payload);
+      showNotification.success(result.Message || "Post created successfully!");
+      // Optionally redirect or reset form here
+    } catch (error: any) {
+      showNotification.error(error?.response?.data?.Message || "Failed to create post.");
+    }
   }
 
   return (
@@ -187,8 +252,8 @@ export default function AddItem() {
                 <Input
                   id="title"
                   placeholder="Enter item title"
-                  value={formData.title}
-                  onChange={(e) => handleInputChange("title", e.target.value)}
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
                   required
                   className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 />
@@ -203,11 +268,40 @@ export default function AddItem() {
                   id="description"
                   placeholder="Describe your item in detail..."
                   rows={4}
-                  value={formData.description}
-                  onChange={(e) => handleInputChange("description", e.target.value)}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
                   required
                   className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 />
+              </div>
+
+              {/* Condition and Location Row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="dark:text-white">Campus *</Label>
+                  <Select onValueChange={(value) => setCampus(value)}>
+                    <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                      <SelectValue placeholder="Select campus" />
+                    </SelectTrigger>
+                    <SelectContent className="dark:bg-gray-700 dark:border-gray-600">
+                      <SelectItem value={`${PostCampus.HCM}`}>Xavalo</SelectItem>
+                      <SelectItem value={`${PostCampus.HN}`}>Hola</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="dark:text-white">Type *</Label>
+                  <Select onValueChange={(value) => setType(value)}>
+                    <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent className="dark:bg-gray-700 dark:border-gray-600">
+                      <SelectItem value={`${PostType.Sell}`}>Sell</SelectItem>
+                      <SelectItem value={`${PostType.Trade}`}>Trade</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               {/* Price and Category Row */}
@@ -220,8 +314,8 @@ export default function AddItem() {
                     id="price"
                     type="number"
                     placeholder="0.00"
-                    value={formData.price}
-                    onChange={(e) => handleInputChange("price", e.target.value)}
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
                     required
                     className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   />
@@ -229,67 +323,66 @@ export default function AddItem() {
 
                 <div className="space-y-2">
                   <Label className="dark:text-white">Category *</Label>
-                  <Select onValueChange={(value) => handleInputChange("category", value)}>
-                    <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent className="dark:bg-gray-700 dark:border-gray-600">
-                      <SelectItem value="electronics">Electronics</SelectItem>
-                      <SelectItem value="fashion">Fashion</SelectItem>
-                      <SelectItem value="sports">Sports</SelectItem>
-                      <SelectItem value="furniture">Furniture</SelectItem>
-                      <SelectItem value="music">Music</SelectItem>
-                      <SelectItem value="books">Books</SelectItem>
-                      <SelectItem value="home">Home & Garden</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+                  <div className="flex flex-col gap-2">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="justify-between dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        >
+                          Select categories
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[200px] p-0 dark:bg-gray-700 dark:border-gray-600">
+                        <Command>
+                          <CommandList>
+                            <CommandGroup>
+                              {categories?.map((category) => (
+                                <CommandItem
+                                  key={category.id}
+                                  value={category.id}
+                                  onSelect={() => handleSelect(category.id)}
+                                  className="dark:hover:bg-gray-600 dark:text-white"
+                                >
+                                  <Check
+                                    className={`mr-2 h-4 w-4 ${selectedCategories.includes(category) ? 'opacity-100' : 'opacity-0'
+                                      }`}
+                                  />
+                                  {category.name}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
 
-              {/* Condition and Location Row */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="dark:text-white">Condition *</Label>
-                  <Select onValueChange={(value) => handleInputChange("condition", value)}>
-                    <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                      <SelectValue placeholder="Select condition" />
-                    </SelectTrigger>
-                    <SelectContent className="dark:bg-gray-700 dark:border-gray-600">
-                      <SelectItem value="new">New</SelectItem>
-                      <SelectItem value="like-new">Like New</SelectItem>
-                      <SelectItem value="good">Good</SelectItem>
-                      <SelectItem value="fair">Fair</SelectItem>
-                      <SelectItem value="poor">Poor</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="location" className="dark:text-white">
-                    Location *
-                  </Label>
-                  <Input
-                    id="location"
-                    placeholder="City, State"
-                    value={formData.location}
-                    onChange={(e) => handleInputChange("location", e.target.value)}
-                    required
-                    className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  />
+                    <div className="flex flex-wrap gap-2">
+                      {selectedCategories.map((category, index) => {
+                        return (
+                          <Badge
+                            key={index}
+                            variant="secondary"
+                            className="dark:bg-gray-700 dark:text-white cursor-pointer"
+                            onClick={() => handleRemove(category.id)}
+                          >
+                            {category?.name || 'Unknown'} ✕
+                          </Badge>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
               </div>
 
               {/* Submit Buttons */}
               <div className="flex gap-4 pt-6">
                 <Button
-                  type="submit"
+                  onClick={handleCreatePost}
                   className="flex-1 bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600"
                 >
-                  Publish Listing
-                </Button>
-                <Button type="button" variant="outline" className="flex-1 bg-transparent">
-                  Save as Draft
+                  Publish Post
                 </Button>
               </div>
             </CardContent>
