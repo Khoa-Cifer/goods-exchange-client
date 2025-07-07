@@ -33,8 +33,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
             const response = await http.post('/auth/google/callback', {
                 code: googleResponse.credential,
-            }, {
-                withCredentials: true,
             });
 
             const { accessToken } = response.data.authResult.cookies;

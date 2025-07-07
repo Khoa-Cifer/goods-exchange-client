@@ -8,6 +8,7 @@ const http: AxiosInstance = axios.create({
     Accept: "application/json",
     "Content-Type": "application/json",
   },
+  withCredentials: true,
 });
 
 // ✅ Add a request interceptor to inject the latest token

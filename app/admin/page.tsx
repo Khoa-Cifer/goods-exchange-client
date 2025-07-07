@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Search, Filter } from "lucide-react"
+import { Search, Filter, Calendar, DollarSign, Eye, FileText, MapPin, Tag, XCircle } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { useEffect, useState } from "react"
 import { assignRoleToUser, getAllUsers, unassignRoleToUser } from "@/axios/admin";
@@ -17,12 +17,18 @@ import { showNotification } from "@/components/notification-helper";
 import { useAuth } from "@/context/auth-context";
 import { Category } from "@/types/category";
 import { getAllCategories } from "@/axios/user";
+import { getAllPosts } from "@/axios/post";
+import { Post } from "@/types/post";
 
 export default function AdminDashboard() {
   const { authenticatedUser } = useAuth();
 
   const [users, setUsers] = useState<User[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
+
+  const [showPreviewImage, setShowPreviewImage] = useState<boolean>(false);
+  const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [openAssignRoleDialog, setOpenAssignRoleDialog] = useState(false);
   const [openUnassignRoleDialog, setOpenUnassignRoleDialog] = useState(false);
   const [selectedRole, setSelectedRole] = useState("");
@@ -34,6 +40,11 @@ export default function AdminDashboard() {
     setSelectedUnassignedRole(role);
     setOpenUnassignRoleDialog(true);
   };
+
+  const handleViewPreviewImage = (base64: string) => {
+    setShowPreviewImage(true);
+    setImageBase64(base64);
+  }
 
   const handleConfirmUnassignRole = async () => {
     if (!selectedUser || !selectedUnassignedRole) return;
@@ -80,9 +91,16 @@ export default function AdminDashboard() {
     setCategories(response);
   }
 
+  const fetchPosts = async () => {
+    const response = await getAllPosts();
+    console.log(response);
+    setPosts(response);
+  }
+
   useEffect(() => {
     fetchUsers();
     fetchCategories();
+    fetchPosts();
   }, []);
 
   const handleView = (user: User) => {
@@ -97,7 +115,7 @@ export default function AdminDashboard() {
   return (
     <div className="container mx-auto px-4 py-8">
       <Tabs defaultValue="users" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 dark:bg-gray-800">
+        <TabsList className="grid w-full grid-cols-3 dark:bg-gray-800">
           <TabsTrigger
             value="users"
             className="dark:text-gray-300 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-white"
@@ -109,6 +127,12 @@ export default function AdminDashboard() {
             className="dark:text-gray-300 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-white"
           >
             Categories
+          </TabsTrigger>
+          <TabsTrigger
+            value="posts"
+            className="dark:text-gray-300 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-white"
+          >
+            Posts Management
           </TabsTrigger>
         </TabsList>
 
@@ -258,66 +282,157 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
         </TabsContent>
-        {/* <TabsContent value="categories" className="space-y-6">
+
+        <TabsContent value="posts" className="space-y-6">
           <Card className="dark:bg-gray-800 dark:border-gray-700">
             <CardHeader>
               <div className="flex justify-between items-center">
-                <CardTitle className="dark:text-white">Item Moderation</CardTitle>
+                <CardTitle className="dark:text-white">Posts Management</CardTitle>
                 <div className="flex gap-2">
-                  <Badge variant="outline">{systemStats.pendingItems} Pending Review</Badge>
-                  <Badge variant="destructive">{systemStats.reportedItems} Reported</Badge>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400 dark:text-gray-500" />
+                    <Input
+                      placeholder="Search posts..."
+                      className="pl-10 w-64 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    />
+                  </div>
+                  <Button variant="outline" size="sm" className="bg-transparent">
+                    <Filter className="w-4 h-4 mr-2" />
+                    Filter
+                  </Button>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {pendingItems.map((item) => (
+                {posts && posts.map && posts.map((post) => (
                   <div
-                    key={item.id}
-                    className="flex items-center justify-between p-4 border dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+                    key={post.id}
+                    className="border dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700"
                   >
-                    <div className="flex items-center gap-4">
-                      <img
-                        src={item.image || "/placeholder.svg"}
-                        alt={item.title}
-                        className="w-16 h-16 object-cover rounded-lg"
-                      />
-                      <div>
-                        <h3 className="font-medium dark:text-white">{item.title}</h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">by {item.seller}</p>
-                        <div className="flex items-center gap-4 mt-1">
-                          <span className="text-lg font-bold text-green-600 dark:text-green-400">${item.price}</span>
-                          <Badge variant="outline">{item.category}</Badge>
-                          <Badge variant={item.status === "flagged" ? "destructive" : "secondary"}>
-                            {item.status}
-                          </Badge>
+                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+                      {/* Post Info */}
+                      <div className="lg:col-span-2">
+                        <div className="flex items-start justify-between mb-2">
+                          <h3 className="font-semibold text-lg dark:text-white">{post.title}</h3>
+                          <div className="flex gap-2">
+                            <Badge
+                              variant={
+                                post.status === 1 ? "default" : post.status === 2 ? "secondary" : "destructive"
+                              }
+                            >
+                              {post.status === 1 ? "Active" : post.status === 2 ? "Sold" : "Inactive"}
+                            </Badge>
+                            <Badge variant="outline">
+                              {post.type === 1 ? "Sell" : post.type === 2 ? "Buy" : "Exchange"}
+                            </Badge>
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-3 line-clamp-2">
+                          {post.description}
+                        </p>
+
+                        {/* Post Details */}
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div className="flex items-center text-gray-600 dark:text-gray-300">
+                            <DollarSign className="w-4 h-4 mr-1" />
+                            <span className="font-semibold text-green-600 dark:text-green-400">${post.price}</span>
+                          </div>
+                          <div className="flex items-center text-gray-600 dark:text-gray-300">
+                            <MapPin className="w-4 h-4 mr-1" />
+                            {post.campus}
+                          </div>
+                          <div className="flex items-center text-gray-600 dark:text-gray-300">
+                            <Calendar className="w-4 h-4 mr-1" />
+                            {formatDate(post.createdAt)}
+                          </div>
+                          <div className="flex items-center text-gray-600 dark:text-gray-300">
+                            <FileText className="w-4 h-4 mr-1" />
+                            {post.images.length} image{post.images.length !== 1 ? "s" : ""}
+                          </div>
                         </div>
                       </div>
+
+                      {/* Categories */}
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Categories</h4>
+                        <div className="flex flex-wrap gap-1">
+                          {post.postCategories.map((pc) => (
+                            <Badge key={pc.id} variant="secondary" className="text-xs">
+                              <Tag className="w-3 h-3 mr-1" />
+                              {pc.category.name}
+                            </Badge>
+                          ))}
+                        </div>
+
+                        {/* Images Preview */}
+                        {post.images.length > 0 && (
+                          <div className="mt-3">
+                            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Images</h4>
+                            <div className="flex flex-wrap gap-1">
+                              {post.images.slice(0, 3).map((image, index) => (
+                                <button
+                                  key={image.id}
+                                  onClick={() => handleViewPreviewImage(image.imageBase64)}
+                                  className="w-12 h-12 bg-gray-200 dark:bg-gray-600 rounded border flex items-center justify-center text-xs text-gray-500 dark:text-gray-400"
+                                >
+                                  {index + 1}
+                                </button>
+                              ))}
+                              {post.images.length > 3 && (
+                                <div className="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded border flex items-center justify-center text-xs text-gray-500 dark:text-gray-400">
+                                  +{post.images.length - 3}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex flex-col gap-2">
+                        <Button variant="outline" size="sm" className="bg-transparent">
+                          <Eye className="w-4 h-4 mr-2" />
+                          View Details
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className={`bg-transparent ${post.status === 1 ? "text-orange-600 dark:text-orange-400" : "text-green-600 dark:text-green-400"}`}
+                        >
+                          {post.status === 1 ? "Deactivate" : "Activate"}
+                        </Button>
+                        <Button variant="outline" size="sm" className="text-red-600 dark:text-red-400 bg-transparent">
+                          <XCircle className="w-4 h-4 mr-2" />
+                          Delete
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" className="bg-transparent">
-                        <Eye className="w-4 h-4 mr-2" />
-                        Review
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-green-600 dark:text-green-400 bg-transparent"
-                      >
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        Approve
-                      </Button>
-                      <Button variant="outline" size="sm" className="text-red-600 dark:text-red-400 bg-transparent">
-                        <XCircle className="w-4 h-4 mr-2" />
-                        Reject
-                      </Button>
+
+                    {/* Timestamps */}
+                    <div className="mt-4 pt-3 border-t dark:border-gray-600 flex justify-between text-xs text-gray-500 dark:text-gray-400">
+                      <span>Created: {post.createdAt.toLocaleString()}</span>
+                      <span>Updated: {post.updatedAt.toLocaleString()}</span>
                     </div>
                   </div>
                 ))}
               </div>
+
+              {/* Pagination */}
+              <div className="flex justify-between items-center mt-6 pt-4 border-t dark:border-gray-700">
+                <div className="text-sm text-gray-600 dark:text-gray-300">Showing 1-4 of 4 posts</div>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" disabled className="bg-transparent">
+                    Previous
+                  </Button>
+                  <Button variant="outline" size="sm" disabled className="bg-transparent">
+                    Next
+                  </Button>
+                </div>
+              </div>
             </CardContent>
           </Card>
-        </TabsContent> */}
+        </TabsContent>
 
         {selectedUser && (
           <Dialog open={openUnassignRoleDialog} onOpenChange={setOpenUnassignRoleDialog}>
@@ -364,6 +479,30 @@ export default function AdminDashboard() {
               <Button variant={"secondary"} onClick={handleConfirmAssignRole}>Confirm</Button>
             </DialogContent>
           </Dialog>
+        )}
+
+        {showPreviewImage && imageBase64 && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm"
+            onClick={() => setShowPreviewImage(false)}
+          >
+            <div
+              className="max-w-full max-h-full p-4"
+              onClick={(e) => e.stopPropagation()} // Prevent closing on image click
+            >
+              <img
+                src={imageBase64}
+                alt="Preview"
+                className="max-w-full max-h-[80vh] rounded-lg shadow-lg"
+              />
+              <button
+                onClick={() => setShowPreviewImage(false)}
+                className="absolute top-4 right-4 text-white bg-red-600 hover:bg-red-700 rounded-full w-8 h-8 flex items-center justify-center"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
         )}
       </Tabs>
     </div>

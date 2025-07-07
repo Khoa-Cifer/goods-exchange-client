@@ -149,7 +149,7 @@ export default function AddItem() {
         categories: selectedCategories.map(cat => cat.id),
       };
       const result = await createPost(payload);
-      showNotification.success(result.Message || "Post created successfully!");
+      showNotification.success(result.message || "Post created successfully!");
       // Optionally redirect or reset form here
     } catch (error: any) {
       showNotification.error(error?.response?.data?.Message || "Failed to create post.");
