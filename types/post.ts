@@ -7,6 +7,10 @@ export type Post = {
     campus: string;
     status: number;
     type: number;
+    user: {
+        username: string;
+        email: string;
+    };
     createdAt: string;
     updatedAt: string;
     images: {

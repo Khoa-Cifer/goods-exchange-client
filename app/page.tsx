@@ -9,81 +9,39 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/context/auth-context"
 import { UserDropdown } from "@/components/user-dropdown"
+import { mockPosts } from "@/data/mock-posts"
+import { showNotification } from "@/components/notification-helper"
+import { PostCard } from "@/components/post-card"
+import { categories } from "@/data/mock-categories"
 
-// Mock data for featured items
-const featuredItems = [
-  {
-    id: 1,
-    title: "MacBook Pro 2021",
-    price: 1200,
-    location: "New York, NY",
-    seller: "TechSeller",
-    rating: 4.8,
-    image: "/placeholder.svg?height=200&width=200",
-    category: "Electronics",
-    featured: true,
-  },
-  {
-    id: 2,
-    title: "Vintage Leather Jacket",
-    price: 85,
-    location: "Los Angeles, CA",
-    seller: "VintageStyle",
-    rating: 4.9,
-    image: "/placeholder.svg?height=200&width=200",
-    category: "Fashion",
-    featured: true,
-  },
-  {
-    id: 3,
-    title: "Mountain Bike",
-    price: 300,
-    location: "Denver, CO",
-    seller: "BikeExpert",
-    rating: 4.7,
-    image: "/placeholder.svg?height=200&width=200",
-    category: "Sports",
-    featured: true,
-  },
-  {
-    id: 4,
-    title: "Coffee Table",
-    price: 120,
-    location: "Chicago, IL",
-    seller: "FurnitureHub",
-    rating: 4.6,
-    image: "/placeholder.svg?height=200&width=200",
-    category: "Furniture",
-    featured: true,
-  },
-  {
-    id: 5,
-    title: "Guitar Acoustic",
-    price: 200,
-    location: "Austin, TX",
-    seller: "MusicLover",
-    rating: 4.9,
-    image: "/placeholder.svg?height=200&width=200",
-    category: "Music",
-    featured: true,
-  },
-  {
-    id: 6,
-    title: "Designer Handbag",
-    price: 450,
-    location: "Miami, FL",
-    seller: "LuxuryItems",
-    rating: 4.8,
-    image: "/placeholder.svg?height=200&width=200",
-    category: "Fashion",
-    featured: true,
-  },
-]
-
-const categories = ["Electronics", "Fashion", "Sports", "Furniture", "Music", "Books", "Home"]
+const featuredItems = mockPosts.filter((post) => post.status === 1).slice(0, 6)
 
 export default function HomePage() {
-  const { accessToken, authenticatedUser: user, logout } = useAuth();
+  const { authenticatedUser, logout } = useAuth()
+
+  const handleProductInteraction = (action: string, itemTitle?: string) => {
+    // Handle different actions with appropriate notifications
+    switch (action.split("-")[0]) {
+      case "search":
+        showNotification.success("Search Started", "Searching for items...")
+        break
+      case "category":
+        const category = action.split("-")[1]
+        showNotification.success("Category Selected", `Browsing ${category} items`)
+        break
+      case "view":
+        showNotification.success("Item Viewed", `Viewing details for ${itemTitle}`)
+        break
+      case "favorite":
+        showNotification.success("Added to Favorites", `${itemTitle} has been added to your favorites`)
+        break
+      case "message":
+        showNotification.success("Message Sent", `Message sent to seller of ${itemTitle}`)
+        break
+      default:
+        showNotification.success("Action Completed", "Your action has been processed successfully")
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -97,17 +55,16 @@ export default function HomePage() {
             </div>
             <div className="flex gap-4 items-center">
               <ThemeToggle />
-              <Link href="/login">
-                {accessToken && user ? (
-                  <UserDropdown user={user} onLogout={logout} />
-                ) : (
-                  <Link href="/login">
-                    <Button className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600">
-                      Sign In
-                    </Button>
-                  </Link>
-                )}
-              </Link>
+              {authenticatedUser ? (
+                <UserDropdown user={authenticatedUser} onLogout={logout} />
+              ) : (
+                <Link href="/login">
+                  <Button className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600">
+                    Sign In
+                  </Button>
+                </Link>
+              )}
+
             </div>
           </div>
         </div>
@@ -132,8 +89,12 @@ export default function HomePage() {
                 <Input
                   placeholder="Search for items, brands, or categories..."
                   className="pl-12 h-14 text-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  onClick={() => handleProductInteraction("search")}
                 />
-                <Button className="absolute right-2 top-2 h-10 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600">
+                <Button
+                  className="absolute right-2 top-2 h-10 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600"
+                  onClick={() => handleProductInteraction("search")}
+                >
                   Search
                 </Button>
               </div>
@@ -152,6 +113,7 @@ export default function HomePage() {
                 key={category}
                 variant="secondary"
                 className="px-4 py-2 text-sm cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors"
+                onClick={() => handleProductInteraction(`category-${category}`)}
               >
                 {category}
               </Badge>
@@ -165,143 +127,62 @@ export default function HomePage() {
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
             <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Featured Items</h3>
-            <Link href="/login">
-              <Button variant="outline" className="bg-transparent">
-                View All Items
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
+            {authenticatedUser ? (
+              <Link href="/buyer">
+                <Button
+                  variant="outline"
+                  className="bg-transparent"
+                  onClick={() => showNotification.success("Loading", "Loading all items...")}
+                >
+                  View All Items
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </Link>
+            ) : (
+              <Link href="/login">
+                <Button variant="outline" className="bg-transparent">
+                  View All Items
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </Link>
+            )}
           </div>
 
           {/* Items Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredItems.map((item) => (
-              <Card
-                key={item.id}
-                className="hover:shadow-lg transition-shadow cursor-pointer dark:bg-gray-700 dark:border-gray-600"
-              >
-                <CardHeader className="p-0 relative">
-                  <img
-                    src={item.image || "/placeholder.svg"}
-                    alt={item.title}
-                    className="w-full h-48 object-cover rounded-t-lg"
-                  />
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    className="absolute top-2 right-2 p-2"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      // Redirect to login for unauthorized users
-                      window.location.href = "/login"
-                    }}
-                  >
-                    <Heart className="w-4 h-4" />
-                  </Button>
-                  <Badge className="absolute top-2 left-2 bg-blue-600 text-white">Featured</Badge>
-                </CardHeader>
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <CardTitle className="text-lg dark:text-white">{item.title}</CardTitle>
-                    <Badge variant="outline">{item.category}</Badge>
-                  </div>
-
-                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-2">${item.price}</p>
-
-                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-300 mb-2">
-                    <MapPin className="w-4 h-4 mr-1" />
-                    {item.location}
-                  </div>
-
-                  <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-300 mb-4">
-                    <span>Seller: {item.seller}</span>
-                    <span className="flex items-center">
-                      <Star className="w-4 h-4 mr-1 text-yellow-500" />
-                      {item.rating}
-                    </span>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Link href="/login" className="flex-1">
-                      <Button className="w-full">View Details</Button>
-                    </Link>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="bg-transparent"
-                      onClick={() => {
-                        // Redirect to login for unauthorized users
-                        window.location.href = "/login"
-                      }}
-                    >
-                      <MessageCircle className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+            {featuredItems.map((post) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                showLoginPrompt={!authenticatedUser}
+                onContact={(post) => handleProductInteraction(`contact-${post.id}`, post.title)}
+                onFavorite={(post) => handleProductInteraction(`favorite-${post.id}`, post.title)}
+              />
             ))}
           </div>
 
           {/* Load More */}
           <div className="text-center mt-8">
-            <Link href="/login">
-              <Button variant="outline" size="lg" className="bg-transparent">
-                View More Items
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Call to Action Section */}
-      <section className="py-16 bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-800 dark:to-indigo-800">
-        <div className="container mx-auto px-4 text-center">
-          <h3 className="text-3xl font-bold text-white mb-4">Ready to Get Started?</h3>
-          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Join thousands of users buying and selling on our platform. Sign in with Google to get started in seconds.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/login">
-              <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100">
-                <Store className="w-5 h-5 mr-2" />
-                Start Selling Today
-              </Button>
-            </Link>
-            <Link href="/login">
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-white text-white hover:bg-white hover:text-blue-600 bg-transparent"
-              >
-                <ShoppingBag className="w-5 h-5 mr-2" />
-                Sign In to Shop
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="py-12 bg-gray-100 dark:bg-gray-800">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
-            <div>
-              <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">10K+</div>
-              <div className="text-gray-600 dark:text-gray-300">Active Users</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">50K+</div>
-              <div className="text-gray-600 dark:text-gray-300">Items Listed</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">25K+</div>
-              <div className="text-gray-600 dark:text-gray-300">Successful Sales</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-orange-600 dark:text-orange-400 mb-2">4.8★</div>
-              <div className="text-gray-600 dark:text-gray-300">Average Rating</div>
-            </div>
+            {authenticatedUser ? (
+              <Link href="/buyer">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="bg-transparent"
+                  onClick={() => showNotification.success("Loading", "Loading more items...")}
+                >
+                  View More Items
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </Link>
+            ) : (
+              <Link href="/login">
+                <Button variant="outline" size="lg" className="bg-transparent">
+                  View More Items
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </section>

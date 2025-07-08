@@ -25,3 +25,8 @@ export async function hidePost(postId: string) {
   const response = await http.put(`/posts/hide-post/${postId}`);
   return response.data;
 }
+
+export async function getPostsByUser() {
+  const response = await http.get("/posts/get-posts-by-user");
+  return response.data.result;
+}
