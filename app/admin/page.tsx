@@ -18,8 +18,9 @@ import { useAuth } from "@/context/auth-context";
 import { Category } from "@/types/category";
 import { getAllCategories } from "@/axios/user";
 import { getAllPosts } from "@/axios/post";
-import { Post } from "@/types/post";
+import { Post, PostEntity } from "@/types/post";
 import { AdminPostCard } from "@/components/admin-post-card";
+import { PostStatus } from "@/enum/post-status";
 
 export default function AdminDashboard() {
   const { authenticatedUser } = useAuth();
@@ -45,6 +46,14 @@ export default function AdminDashboard() {
   const handleViewPreviewImage = (base64Image: string) => {
     setShowPreviewImage(true);
     setImageBase64(base64Image);
+  }
+
+  const handleUpdatePost = (updatedPost: PostEntity) => {
+    setPosts((prevPosts) =>
+      prevPosts.map((post) =>
+        post.id === updatedPost.id ? { ...post, status: updatedPost.status } : post
+      )
+    );
   }
 
   const handleConfirmUnassignRole = async () => {
@@ -307,7 +316,7 @@ export default function AdminDashboard() {
             <CardContent>
               <div className="space-y-4">
                 <Tabs defaultValue="all" className="w-full">
-                  <TabsList className="grid w-full grid-cols-5 mb-6 dark:bg-gray-700">
+                  <TabsList className="grid w-full grid-cols-6 mb-6 dark:bg-gray-700">
                     <TabsTrigger
                       value="all"
                       className="dark:text-gray-300 dark:data-[state=active]:bg-gray-600 dark:data-[state=active]:text-white"
@@ -318,25 +327,31 @@ export default function AdminDashboard() {
                       value="created"
                       className="dark:text-gray-300 dark:data-[state=active]:bg-gray-600 dark:data-[state=active]:text-white"
                     >
-                      Created ({posts.filter((p) => p.status === 1).length})
+                      Created ({posts.filter((p) => p.status === PostStatus.Created).length})
                     </TabsTrigger>
                     <TabsTrigger
                       value="confirmed"
                       className="dark:text-gray-300 dark:data-[state=active]:bg-gray-600 dark:data-[state=active]:text-white"
                     >
-                      Confirmed ({posts.filter((p) => p.status === 2).length})
+                      Confirmed ({posts.filter((p) => p.status === PostStatus.Confirmed).length})
                     </TabsTrigger>
                     <TabsTrigger
                       value="completed"
                       className="dark:text-gray-300 dark:data-[state=active]:bg-gray-600 dark:data-[state=active]:text-white"
                     >
-                      Completed ({posts.filter((p) => p.status === 3).length})
+                      Completed ({posts.filter((p) => p.status === PostStatus.Completed).length})
                     </TabsTrigger>
                     <TabsTrigger
                       value="rejected"
                       className="dark:text-gray-300 dark:data-[state=active]:bg-gray-600 dark:data-[state=active]:text-white"
                     >
-                      Rejected ({posts.filter((p) => p.status === 0).length})
+                      Rejected ({posts.filter((p) => p.status === PostStatus.Rejected).length})
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="hidden"
+                      className="dark:text-gray-300 dark:data-[state=active]:bg-gray-600 dark:data-[state=active]:text-white"
+                    >
+                      Hidden ({posts.filter((p) => p.status === PostStatus.Hidden).length})
                     </TabsTrigger>
                   </TabsList>
 
@@ -346,29 +361,33 @@ export default function AdminDashboard() {
                       <h3 className="text-lg font-semibold dark:text-white">All Posts</h3>
                       <div className="flex gap-2">
                         <Badge variant="default">{posts.length} Total</Badge>
-                        <Badge variant="secondary">{posts.filter((p) => p.status === 1).length} Created</Badge>
-                        <Badge variant="secondary">{posts.filter((p) => p.status === 2).length} Confirmed</Badge>
-                        <Badge variant="secondary">{posts.filter((p) => p.status === 3).length} Completed</Badge>
-                        <Badge variant="destructive">{posts.filter((p) => p.status === 0).length} Rejected</Badge>
+                        <Badge variant="secondary">{posts.filter((p) => p.status === PostStatus.Created).length} Created</Badge>
+                        <Badge variant="secondary">{posts.filter((p) => p.status === PostStatus.Confirmed).length} Confirmed</Badge>
+                        <Badge variant="secondary">{posts.filter((p) => p.status === PostStatus.Completed).length} Completed</Badge>
+                        <Badge variant="destructive">{posts.filter((p) => p.status === PostStatus.Rejected).length} Rejected</Badge>
+                        <Badge variant="destructive">{posts.filter((p) => p.status === PostStatus.Hidden).length} Hidden</Badge>
                       </div>
                     </div>
                     {posts && posts.map && posts
                       .map((post) => (
-                        <AdminPostCard key={post.id} post={post} onSelectPreviewImage={handleViewPreviewImage} />
+                        <AdminPostCard
+                          key={post.id} post={post}
+                          onSelectPreviewImage={handleViewPreviewImage}
+                          onUpdatePost={handleUpdatePost} />
                       ))}
                   </TabsContent>
 
                   <TabsContent value="created" className="space-y-4">
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="text-lg font-semibold dark:text-white">Active Posts</h3>
-                      <Badge variant="secondary">{posts.filter((p) => p.status === 1).length} Posts</Badge>
+                      <Badge variant="secondary">{posts.filter((p) => p.status === PostStatus.Created).length} Posts</Badge>
                     </div>
                     {posts && posts.map && posts
-                      .filter((post) => post.status === 1)
+                      .filter((post) => post.status === PostStatus.Created)
                       .map((post) => (
-                        <AdminPostCard key={post.id} post={post} onSelectPreviewImage={handleViewPreviewImage} />
+                        <AdminPostCard key={post.id} post={post} onSelectPreviewImage={handleViewPreviewImage} onUpdatePost={handleUpdatePost} />
                       ))}
-                    {posts.filter((post) => post.status === 1).length === 0 && (
+                    {posts.filter((post) => post.status === PostStatus.Created).length === 0 && (
                       <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                         <Package className="w-12 h-12 mx-auto mb-4 opacity-50" />
                         <p>No active posts found</p>
@@ -379,14 +398,14 @@ export default function AdminDashboard() {
                   <TabsContent value="confirmed" className="space-y-4">
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="text-lg font-semibold dark:text-white">Confirmed Posts</h3>
-                      <Badge variant="secondary">{posts.filter((p) => p.status === 2).length} Posts</Badge>
+                      <Badge variant="secondary">{posts.filter((p) => p.status === PostStatus.Confirmed).length} Posts</Badge>
                     </div>
                     {posts && posts.map && posts
-                      .filter((post) => post.status === 2)
+                      .filter((post) => post.status === PostStatus.Confirmed)
                       .map((post) => (
-                        <AdminPostCard key={post.id} post={post} onSelectPreviewImage={handleViewPreviewImage} />
+                        <AdminPostCard key={post.id} post={post} onSelectPreviewImage={handleViewPreviewImage} onUpdatePost={handleUpdatePost} />
                       ))}
-                    {posts.filter((post) => post.status === 2).length === 0 && (
+                    {posts.filter((post) => post.status === PostStatus.Confirmed).length === 0 && (
                       <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                         <CheckCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
                         <p>No sold posts found</p>
@@ -397,14 +416,14 @@ export default function AdminDashboard() {
                   <TabsContent value="completed" className="space-y-4">
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="text-lg font-semibold dark:text-white">Completed Posts</h3>
-                      <Badge variant="secondary">{posts.filter((p) => p.status === 2).length} Posts</Badge>
+                      <Badge variant="secondary">{posts.filter((p) => p.status === PostStatus.Completed).length} Posts</Badge>
                     </div>
                     {posts && posts.map && posts
-                      .filter((post) => post.status === 2)
+                      .filter((post) => post.status === PostStatus.Completed)
                       .map((post) => (
-                        <AdminPostCard key={post.id} post={post} onSelectPreviewImage={handleViewPreviewImage} />
+                        <AdminPostCard key={post.id} post={post} onSelectPreviewImage={handleViewPreviewImage} onUpdatePost={handleUpdatePost} />
                       ))}
-                    {posts.filter((post) => post.status === 2).length === 0 && (
+                    {posts.filter((post) => post.status === PostStatus.Completed).length === 0 && (
                       <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                         <CheckCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
                         <p>No sold posts found</p>
@@ -415,14 +434,32 @@ export default function AdminDashboard() {
                   <TabsContent value="rejected" className="space-y-4">
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="text-lg font-semibold dark:text-white">Rejected Posts</h3>
-                      <Badge variant="destructive">{posts.filter((p) => p.status === 0).length} Posts</Badge>
+                      <Badge variant="destructive">{posts.filter((p) => p.status === PostStatus.Rejected).length} Posts</Badge>
                     </div>
                     {posts && posts.map && posts
-                      .filter((post) => post.status === 0)
+                      .filter((post) => post.status === PostStatus.Rejected)
                       .map((post) => (
-                        <AdminPostCard key={post.id} post={post} onSelectPreviewImage={handleViewPreviewImage} />
+                        <AdminPostCard key={post.id} post={post} onSelectPreviewImage={handleViewPreviewImage} onUpdatePost={handleUpdatePost} />
                       ))}
-                    {posts.filter((post) => post.status === 0).length === 0 && (
+                    {posts.filter((post) => post.status === PostStatus.Rejected).length === 0 && (
+                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                        <XCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                        <p>No inactive posts found</p>
+                      </div>
+                    )}
+                  </TabsContent>
+
+                  <TabsContent value="hidden" className="space-y-4">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-semibold dark:text-white">Hidden Posts</h3>
+                      <Badge variant="destructive">{posts.filter((p) => p.status === PostStatus.Hidden).length} Posts</Badge>
+                    </div>
+                    {posts && posts.map && posts
+                      .filter((post) => post.status === PostStatus.Hidden)
+                      .map((post) => (
+                        <AdminPostCard key={post.id} post={post} onSelectPreviewImage={handleViewPreviewImage} onUpdatePost={handleUpdatePost} />
+                      ))}
+                    {posts.filter((post) => post.status === PostStatus.Hidden).length === 0 && (
                       <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                         <XCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
                         <p>No inactive posts found</p>

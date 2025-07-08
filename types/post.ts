@@ -24,3 +24,16 @@ export type Post = {
         };
     }[];
 }
+
+export type PostEntity = {
+    id: string;
+    title: string;
+    description: string;
+    price: number;
+    userId: string;
+    campus: string;
+    status: number;
+    type: number;
+    createdAt: Date;
+    updatedAt: Date;
+}

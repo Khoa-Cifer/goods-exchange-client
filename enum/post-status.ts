@@ -3,5 +3,5 @@ export enum PostStatus {
   Confirmed = 2,
   Completed = 3,
   Rejected = 0,
-  Hided = -1,
+  Hidden = -1,
 }

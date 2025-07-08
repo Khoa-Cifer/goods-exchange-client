@@ -1,12 +1,40 @@
-import { Post } from "@/types/post";
+import { Post, PostEntity } from "@/types/post";
 import { DollarSign, MapPin, Calendar, FileText, Tag, Eye, XCircle } from "lucide-react";
 import { Badge } from "./ui/badge";
 import { formatDate } from "@/lib/utils";
 import { Button } from "./ui/button";
+import { confirmPost, hidePost, rejectPost } from "@/axios/post";
+import { showNotification } from "./notification-helper";
+import { PostStatus } from "@/enum/post-status";
 
-export const AdminPostCard = ({ post, onSelectPreviewImage }: { post: Post, onSelectPreviewImage: any }) => {
+export const AdminPostCard = ({ post, onSelectPreviewImage, onUpdatePost }:
+    { post: Post, onSelectPreviewImage: (base64Image: string) => void, onUpdatePost: (updatedPost: PostEntity) => void }) => {
     const handleViewPreviewImage = (base64Image: string) => {
         onSelectPreviewImage(base64Image);
+    }
+
+    const handleConfirmPost = async (postId: string) => {
+        const response = await confirmPost(postId);
+        if (response) {
+            showNotification.success("Confirm post successfully", "Update the list")
+            onUpdatePost(response);
+        }
+    }
+
+    const handleRejectPost = async (postId: string) => {
+        const response = await rejectPost(postId);
+        if (response) {
+            showNotification.success("Reject post successfully", "Update the list")
+            onUpdatePost(response);
+        }
+    }
+
+    const handleHidePost = async (postId: string) => {
+        const response = await hidePost(postId);
+        if (response) {
+            showNotification.success("Hide post successfully", "Update the list")
+            onUpdatePost(response);
+        }
     }
 
     return (
@@ -17,8 +45,8 @@ export const AdminPostCard = ({ post, onSelectPreviewImage }: { post: Post, onSe
                     <div className="flex items-start justify-between mb-2">
                         <h3 className="font-semibold text-lg dark:text-white">{post.title}</h3>
                         <div className="flex gap-2">
-                            <Badge variant={post.status === 1 ? "default" : post.status === 2 ? "secondary" : "destructive"}>
-                                {post.status === 1 ? "Active" : post.status === 2 ? "Sold" : "Inactive"}
+                            <Badge variant={post.status === PostStatus.Created ? "default" : post.status === PostStatus.Confirmed ? "secondary" : "destructive"}>
+                                {post.status === PostStatus.Created ? "Active" : post.status === PostStatus.Confirmed ? "Sold" : "Inactive"}
                             </Badge>
                             <Badge variant="outline">{post.type === 1 ? "Sell" : post.type === 2 ? "Buy" : "Exchange"}</Badge>
                         </div>
@@ -77,21 +105,35 @@ export const AdminPostCard = ({ post, onSelectPreviewImage }: { post: Post, onSe
 
                 {/* Actions */}
                 <div className="flex flex-col gap-2">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="bg-transparent text-green-600 dark:text-green-400"
-                    >
-                        {post.status === 1 && (
-                            "Confirm"
-                        )}
-                    </Button>
-                    <Button variant="outline" size="sm" className="text-red-600 dark:text-red-400 bg-transparent">
-                        Reject
-                    </Button>
-                    <Button variant="outline" size="sm" className="text-white bg-transparent">
-                        Hide
-                    </Button>
+                    {post.status === PostStatus.Created ? (
+                        <>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="bg-transparent text-green-600 dark:text-green-400"
+                                onClick={() => handleConfirmPost(post.id)}
+                            >
+                                Confirm
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-red-600 dark:text-red-400 bg-transparent"
+                                onClick={() => handleRejectPost(post.id)}
+                            >
+                                Reject
+                            </Button>
+                        </>
+                    ) : (
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-white bg-transparent"
+                            onClick={() => handleHidePost(post.id)}
+                        >
+                            Hide
+                        </Button>
+                    )}
                 </div>
             </div>
 
