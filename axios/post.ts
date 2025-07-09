@@ -30,3 +30,8 @@ export async function getPostsByUser() {
   const response = await http.get("/posts/get-posts-by-user");
   return response.data.result;
 }
+
+export async function getPostsByStatus(status: number) {
+  const response = await http.get(`/posts/get-posts-by-status/${status}`);
+  return response.data.result;
+}

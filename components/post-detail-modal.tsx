@@ -7,17 +7,21 @@ import { Separator } from "@/components/ui/separator"
 import { Calendar, MapPin, User, Tag, Heart, MessageCircle, Share2, ChevronLeft, ChevronRight } from "lucide-react"
 import { useState } from "react"
 import type { Post } from "@/types/post"
+import { useAuth } from "@/context/auth-context"
+import { PostStatus } from "@/enum/post-status"
+import { ChatModal } from "./chat-modal"
 
 interface PostDetailModalProps {
   post: Post | null
   isOpen: boolean
   onClose: () => void
-  onContact?: () => void
-  onFavorite?: () => void
 }
 
-export function PostDetailModal({ post, isOpen, onClose, onContact, onFavorite }: PostDetailModalProps) {
+export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps) {
+  const { authenticatedUser } = useAuth();
+
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [isChatModalOpen, setIsChatModalOpen] = useState(false);
 
   if (!post) return null
 
@@ -73,7 +77,7 @@ export function PostDetailModal({ post, isOpen, onClose, onContact, onFavorite }
     }
   }
 
-  return (
+  return post && post.user && (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto dark:bg-gray-800 dark:border-gray-700">
         <DialogHeader>
@@ -246,23 +250,20 @@ export function PostDetailModal({ post, isOpen, onClose, onContact, onFavorite }
 
             {/* Action Buttons */}
             <div className="flex gap-3 pt-4">
-              <Button className="flex-1" onClick={onContact} disabled={post.status !== 1}>
+              <Button className="flex-1" onClick={() => setIsChatModalOpen(true)}
+                disabled={post.status !== PostStatus.Confirmed || !authenticatedUser}>
                 <MessageCircle className="w-4 h-4 mr-2" />
                 Contact Seller
               </Button>
-              <Button variant="outline" onClick={onFavorite} className="bg-transparent">
-                <Heart className="w-4 h-4" />
-              </Button>
-              <Button variant="outline" className="bg-transparent">
-                <Share2 className="w-4 h-4" />
-              </Button>
             </div>
 
-            {post.status !== 1 && (
+            {post.status !== PostStatus.Confirmed && (
               <div className="text-sm text-gray-500 dark:text-gray-400 text-center">
-                {post.status === 2 ? "This item has been sold" : "This listing is currently inactive"}
+                {post.status === PostStatus.Completed ? "This item has been sold" : "This listing is currently inactive"}
               </div>
             )}
+
+            <ChatModal post={post} isOpen={isChatModalOpen} onClose={() => setIsChatModalOpen(false)} />
           </div>
         </div>
       </DialogContent>

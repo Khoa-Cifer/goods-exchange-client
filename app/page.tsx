@@ -2,22 +2,34 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ShoppingBag, Store, ArrowRight, Search, MapPin, Star, Heart, MessageCircle } from "lucide-react"
+import { ArrowRight, Search, } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/context/auth-context"
 import { UserDropdown } from "@/components/user-dropdown"
-import { mockPosts } from "@/data/mock-posts"
 import { showNotification } from "@/components/notification-helper"
 import { PostCard } from "@/components/post-card"
 import { categories } from "@/data/mock-categories"
-
-const featuredItems = mockPosts.filter((post) => post.status === 1).slice(0, 6)
+import { useEffect, useState } from "react"
+import { Post } from "@/types/post"
+import { getPostsByStatus } from "@/axios/post"
+import { PostStatus } from "@/enum/post-status"
 
 export default function HomePage() {
-  const { authenticatedUser, logout } = useAuth()
+  const [confirmedPosts, setConfirmedPosts] = useState<Post[]>([]);
+
+  const { authenticatedUser, logout } = useAuth();
+
+  const getConfirmedPost = async () => {
+    const response = await getPostsByStatus(PostStatus.Confirmed);
+    console.log(response);
+    setConfirmedPosts(response);
+  }
+
+  useEffect(() => {
+    getConfirmedPost();
+  }, []);
 
   const handleProductInteraction = (action: string, itemTitle?: string) => {
     // Handle different actions with appropriate notifications
@@ -150,39 +162,13 @@ export default function HomePage() {
 
           {/* Items Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredItems.map((post) => (
+            {confirmedPosts && confirmedPosts.map && confirmedPosts.map((post) => (
               <PostCard
                 key={post.id}
                 post={post}
                 showLoginPrompt={!authenticatedUser}
-                onContact={(post) => handleProductInteraction(`contact-${post.id}`, post.title)}
-                onFavorite={(post) => handleProductInteraction(`favorite-${post.id}`, post.title)}
               />
             ))}
-          </div>
-
-          {/* Load More */}
-          <div className="text-center mt-8">
-            {authenticatedUser ? (
-              <Link href="/buyer">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="bg-transparent"
-                  onClick={() => showNotification.success("Loading", "Loading more items...")}
-                >
-                  View More Items
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </Link>
-            ) : (
-              <Link href="/login">
-                <Button variant="outline" size="lg" className="bg-transparent">
-                  View More Items
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </Link>
-            )}
           </div>
         </div>
       </section>

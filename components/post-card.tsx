@@ -10,6 +10,9 @@ import { useState } from "react"
 import type { Post } from "@/types/post"
 import { showNotification } from "@/components/notification-helper"
 import { PostDetailModal } from "./post-detail-modal"
+import { useAuth } from "@/context/auth-context"
+import { PostStatus } from "@/enum/post-status"
+import { ChatModal } from "./chat-modal"
 
 interface PostCardProps {
   post: Post
@@ -18,8 +21,10 @@ interface PostCardProps {
   onFavorite?: (post: Post) => void
 }
 
-export function PostCard({ post, showLoginPrompt = false, onContact, onFavorite }: PostCardProps) {
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
+export function PostCard({ post, showLoginPrompt = false }: PostCardProps) {
+  const { authenticatedUser } = useAuth();
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isChatModalOpen, setIsChatModalOpen] = useState(false);
 
   const getStatusBadge = (status: number) => {
     switch (status) {
@@ -61,26 +66,6 @@ export function PostCard({ post, showLoginPrompt = false, onContact, onFavorite 
     }
   }
 
-  const handleInteraction = (e: React.MouseEvent, action: string) => {
-    if (showLoginPrompt) {
-      e.preventDefault()
-      e.stopPropagation()
-      showNotification.warning("Sign In Required", "Please sign in to continue with this action.")
-      setTimeout(() => {
-        window.location.href = "/login"
-      }, 1500)
-      return
-    }
-
-    if (action === "contact" && onContact) {
-      onContact(post)
-      showNotification.success("Contact Initiated", `Contacting seller about ${post.title}`)
-    } else if (action === "favorite" && onFavorite) {
-      onFavorite(post)
-      showNotification.success("Added to Favorites", `${post.title} has been added to your favorites`)
-    }
-  }
-
   const handleViewDetails = (e: React.MouseEvent) => {
     e.stopPropagation()
     if (showLoginPrompt) {
@@ -113,18 +98,6 @@ export function PostCard({ post, showLoginPrompt = false, onContact, onFavorite 
               className="object-cover rounded-t-lg"
             />
           )}
-
-          <Button
-            size="sm"
-            variant="secondary"
-            className="absolute top-2 right-2 p-2"
-            onClick={(e) => {
-              e.stopPropagation()
-              handleInteraction(e, "favorite")
-            }}
-          >
-            <Heart className="w-4 h-4" />
-          </Button>
 
           {/* Status and Type Badges */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
@@ -183,11 +156,8 @@ export function PostCard({ post, showLoginPrompt = false, onContact, onFavorite 
               variant="outline"
               size="sm"
               className="bg-transparent"
-              onClick={(e) => {
-                e.stopPropagation()
-                handleInteraction(e, "contact")
-              }}
-              disabled={post.status !== 1}
+              onClick={() => setIsChatModalOpen(true)}
+              disabled={post.status !== PostStatus.Confirmed || !authenticatedUser}
             >
               <MessageCircle className="w-4 h-4" />
             </Button>
@@ -199,9 +169,9 @@ export function PostCard({ post, showLoginPrompt = false, onContact, onFavorite 
         post={post}
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
-        onContact={() => handleInteraction({} as React.MouseEvent, "contact")}
-        onFavorite={() => handleInteraction({} as React.MouseEvent, "favorite")}
       />
+
+      <ChatModal post={post} isOpen={isChatModalOpen} onClose={() => setIsChatModalOpen(false)} />
     </>
   )
 }
