@@ -11,16 +11,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Send, Phone, Video, MoreVertical, ImageIcon, Paperclip, Smile } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
 import type { Post } from "@/types/post"
-
-interface Message {
-  id: string
-  senderId: string
-  senderName: string
-  content: string
-  timestamp: Date
-  type: "text" | "image" | "system"
-  isRead: boolean
-}
+import { Message } from "@/enum/message"
+import { getConversationHistory, sendMessage } from "@/axios/message"
 
 interface ChatModalProps {
   post: Post | null
@@ -36,30 +28,15 @@ export function ChatModal({ post, isOpen, onClose, currentUserId = "current_user
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
+  const getConversation = async (userId: string) => {
+    const response = await getConversationHistory(userId);
+    setMessages(response)
+  }
+
   // Mock initial messages
   useEffect(() => {
     if (post && isOpen) {
-      const initialMessages: Message[] = [
-        {
-          id: "msg_1",
-          senderId: "system",
-          senderName: "System",
-          content: `Chat started about "${post.title}"`,
-          timestamp: new Date(Date.now() - 1000 * 60 * 5),
-          type: "system",
-          isRead: true,
-        },
-        {
-          id: "msg_2",
-          senderId: post.userId,
-          senderName: "Seller",
-          content: "Hi! Thanks for your interest in this item. Feel free to ask any questions!",
-          timestamp: new Date(Date.now() - 1000 * 60 * 3),
-          type: "text",
-          isRead: true,
-        },
-      ]
-      setMessages(initialMessages)
+      getConversation(post.userId);
     }
   }, [post, isOpen])
 
@@ -73,20 +50,13 @@ export function ChatModal({ post, isOpen, onClose, currentUserId = "current_user
     if (isOpen) {
       setTimeout(() => inputRef.current?.focus(), 100)
     }
-  }, [isOpen])
+  }, [isOpen]);
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!newMessage.trim() || !post) return
 
-    const message: Message = {
-      id: `msg_${Date.now()}`,
-      senderId: currentUserId,
-      senderName: "You",
-      content: newMessage.trim(),
-      timestamp: new Date(),
-      type: "text",
-      isRead: false,
-    }
+    const response = await sendMessage(post.userId, newMessage.trim());
+    const message = response;
 
     setMessages((prev) => [...prev, message])
     setNewMessage("")
@@ -160,57 +130,25 @@ export function ChatModal({ post, isOpen, onClose, currentUserId = "current_user
               <div>
                 <DialogTitle className="text-lg font-semibold dark:text-white">Chat with Seller</DialogTitle>
                 <p className="text-sm text-gray-600 dark:text-gray-300">About: {post.title}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-xs">
-                ${post.price.toLocaleString()}
-              </Badge>
-              <div className="flex gap-1">
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                  <Phone className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                  <Video className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
+                <p className="text-sm text-gray-600 dark:text-gray-300">Price: ${post.price.toLocaleString()}</p>
               </div>
             </div>
           </div>
         </DialogHeader>
 
-        {/* Product Info Bar */}
-        <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 border-b dark:border-gray-600">
-          <div className="flex items-center gap-3">
-            <div className="flex-1 min-w-0">
-              <h3 className="font-medium text-sm dark:text-white truncate">{post.title}</h3>
-              <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
-                <span className="font-semibold text-green-600 dark:text-green-400">${post.price.toLocaleString()}</span>
-                <span>•</span>
-                <span>{post.campus}</span>
-              </div>
-            </div>
-            <Button variant="outline" size="sm" className="text-xs bg-transparent">
-              View Item
-            </Button>
-          </div>
-        </div>
-
         {/* Messages Area */}
         <ScrollArea className="flex-1 p-4">
           <div className="space-y-4">
-            {messages.map((message, index) => {
+            {messages && messages.map && messages.map((message, index) => {
               const showDate =
-                index === 0 || formatDate(message.timestamp) !== formatDate(messages[index - 1].timestamp)
+                index === 0 || formatDate(message.createdAt) !== formatDate(messages[index - 1].createdAt)
 
               return (
                 <div key={message.id}>
                   {showDate && (
                     <div className="flex justify-center my-4">
                       <Badge variant="secondary" className="text-xs px-3 py-1">
-                        {formatDate(message.timestamp)}
+                        {formatDate(message.createdAt)}
                       </Badge>
                     </div>
                   )}
@@ -233,17 +171,15 @@ export function ChatModal({ post, isOpen, onClose, currentUserId = "current_user
                           </Avatar>
                         )}
                         <div
-                          className={`rounded-2xl px-4 py-2 ${
-                            message.senderId === currentUserId
-                              ? "bg-blue-600 text-white"
-                              : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
-                          }`}
+                          className={`rounded-2xl px-4 py-2 ${message.senderId === currentUserId
+                            ? "bg-blue-600 text-white"
+                            : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                            }`}
                         >
                           <p className="text-sm">{message.content}</p>
                           <p
-                            className={`text-xs mt-1 ${
-                              message.senderId === currentUserId ? "text-blue-100" : "text-gray-500 dark:text-gray-400"
-                            }`}
+                            className={`text-xs mt-1 ${message.senderId === currentUserId ? "text-blue-100" : "text-gray-500 dark:text-gray-400"
+                              }`}
                           >
                             {formatTime(message.timestamp)}
                           </p>
@@ -287,12 +223,6 @@ export function ChatModal({ post, isOpen, onClose, currentUserId = "current_user
         {/* Message Input */}
         <div className="p-4 border-t dark:border-gray-700 bg-white dark:bg-gray-800">
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-500 dark:text-gray-400">
-              <Paperclip className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-500 dark:text-gray-400">
-              <ImageIcon className="h-4 w-4" />
-            </Button>
             <div className="flex-1 relative">
               <Input
                 ref={inputRef}
@@ -302,13 +232,6 @@ export function ChatModal({ post, isOpen, onClose, currentUserId = "current_user
                 placeholder="Type a message..."
                 className="pr-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               />
-              <Button
-                variant="ghost"
-                size="sm"
-                className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 text-gray-500 dark:text-gray-400"
-              >
-                <Smile className="h-4 w-4" />
-              </Button>
             </div>
             <Button
               onClick={handleSendMessage}
@@ -320,8 +243,7 @@ export function ChatModal({ post, isOpen, onClose, currentUserId = "current_user
             </Button>
           </div>
           <div className="flex justify-between items-center mt-2 text-xs text-gray-500 dark:text-gray-400">
-            <span>Press Enter to send, Shift+Enter for new line</span>
-            <span>Online</span>
+            <span>Press Enter to send</span>
           </div>
         </div>
       </DialogContent>

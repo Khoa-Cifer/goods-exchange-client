@@ -5,26 +5,24 @@ import type React from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Heart, MessageCircle, MapPin, Calendar, Tag, Eye } from "lucide-react"
+import { Heart, MessageCircle, MapPin, Calendar, Tag, Eye, Flag, MoreVertical } from "lucide-react"
 import { useState } from "react"
 import type { Post } from "@/types/post"
+import { PostDetailModal } from "@/components/post-detail-modal"
 import { showNotification } from "@/components/notification-helper"
-import { PostDetailModal } from "./post-detail-modal"
-import { useAuth } from "@/context/auth-context"
+import { ChatButton } from "@/components/chat-button"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { PostStatus } from "@/enum/post-status"
-import { ChatModal } from "./chat-modal"
+import { ReportModal } from "./report-modal"
 
 interface PostCardProps {
   post: Post
   showLoginPrompt?: boolean
-  onContact?: (post: Post) => void
-  onFavorite?: (post: Post) => void
 }
 
 export function PostCard({ post, showLoginPrompt = false }: PostCardProps) {
-  const { authenticatedUser } = useAuth();
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [isChatModalOpen, setIsChatModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false)
 
   const getStatusBadge = (status: number) => {
     switch (status) {
@@ -66,6 +64,18 @@ export function PostCard({ post, showLoginPrompt = false }: PostCardProps) {
     }
   }
 
+  const handleInteraction = (e: React.MouseEvent, action: string) => {
+    if (showLoginPrompt) {
+      e.preventDefault()
+      e.stopPropagation()
+      showNotification.warning("Sign In Required", "Please sign in to continue with this action.")
+      setTimeout(() => {
+        window.location.href = "/login"
+      }, 1500)
+      return
+    }
+  }
+
   const handleViewDetails = (e: React.MouseEvent) => {
     e.stopPropagation()
     if (showLoginPrompt) {
@@ -79,25 +89,70 @@ export function PostCard({ post, showLoginPrompt = false }: PostCardProps) {
     showNotification.success("Loading Details", `Loading full details for ${post.title}`)
   }
 
+  const handleReport = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (showLoginPrompt) {
+      showNotification.warning("Sign In Required", "Please sign in to report posts.")
+      setTimeout(() => {
+        window.location.href = "/login"
+      }, 1500)
+      return
+    }
+    setIsReportModalOpen(true)
+  }
+
   const primaryImage = post.images[0]
 
   return (
     <>
       <Card className="hover:shadow-lg transition-shadow cursor-pointer dark:bg-gray-700 dark:border-gray-600">
-        <CardHeader className="p-0 relative w-full h-48 justify-center">
+        <CardHeader className="p-0 relative">
           {primaryImage?.imageBase64 ? (
             <img
-              src={primaryImage.imageBase64}
+              src={`data:image/jpeg;base64,${primaryImage.imageBase64}`}
               alt={post.title}
-              className="object-cover rounded-t-lg"
+              className="w-full h-48 object-cover rounded-t-lg"
             />
           ) : (
             <img
               src="/placeholder.svg?height=200&width=200"
               alt={post.title}
-              className="object-cover rounded-t-lg"
+              className="w-full h-48 object-cover rounded-t-lg"
             />
           )}
+
+          {/* Action Buttons */}
+          <div className="absolute top-2 right-2 flex gap-1">
+            <Button
+              size="sm"
+              variant="secondary"
+              className="p-2"
+              onClick={(e) => {
+                e.stopPropagation()
+                handleInteraction(e, "favorite")
+              }}
+            >
+              <Heart className="w-4 h-4" />
+            </Button>
+
+            {/* More Actions Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="secondary" className="p-2" onClick={(e) => e.stopPropagation()}>
+                  <MoreVertical className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="dark:bg-gray-800 dark:border-gray-700">
+                <DropdownMenuItem
+                  onClick={handleReport}
+                  className="text-red-600 dark:text-red-400 dark:hover:bg-gray-700 cursor-pointer"
+                >
+                  <Flag className="w-4 h-4 mr-2" />
+                  Report Post
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
 
           {/* Status and Type Badges */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
@@ -152,15 +207,30 @@ export function PostCard({ post, showLoginPrompt = false }: PostCardProps) {
               <Eye className="w-4 h-4 mr-2" />
               View Details
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="bg-transparent"
-              onClick={() => setIsChatModalOpen(true)}
-              disabled={post.status !== PostStatus.Confirmed || !authenticatedUser}
-            >
-              <MessageCircle className="w-4 h-4" />
-            </Button>
+            {showLoginPrompt ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-transparent"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleInteraction(e, "contact")
+                }}
+                disabled={post.status !== PostStatus.Confirmed}
+              >
+                <MessageCircle className="w-4 h-4" />
+              </Button>
+            ) : (
+              <ChatButton
+                userId={post.userId}
+                userName={`Seller of ${post.title}`}
+                variant="outline"
+                size="sm"
+                className="bg-transparent"
+              >
+                <MessageCircle className="w-4 h-4" />
+              </ChatButton>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -171,7 +241,7 @@ export function PostCard({ post, showLoginPrompt = false }: PostCardProps) {
         onClose={() => setIsDetailModalOpen(false)}
       />
 
-      <ChatModal post={post} isOpen={isChatModalOpen} onClose={() => setIsChatModalOpen(false)} />
+      <ReportModal post={post} isOpen={isReportModalOpen} onClose={() => setIsReportModalOpen(false)} />
     </>
   )
 }

@@ -6,6 +6,8 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/context/auth-context"
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { Toaster } from "@/components/toaster"
+import { ChatWidget } from "@/components/chat-widget"
+import { ChatProvider } from "@/context/chat-context"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -26,8 +28,11 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}>
             <AuthProvider>
-              {children}
-              <Toaster />
+              <ChatProvider>
+                {children}
+                <Toaster />
+                <ChatWidget />
+              </ChatProvider>
             </AuthProvider>
           </GoogleOAuthProvider>
         </ThemeProvider>

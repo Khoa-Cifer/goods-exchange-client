@@ -1,0 +1,440 @@
+"use client"
+
+import type React from "react"
+
+import { useState, useRef, useEffect } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import {
+  MessageCircle,
+  Send,
+  Search,
+  X,
+  Minimize2,
+  Maximize2,
+  Phone,
+  Video,
+  MoreVertical,
+  ArrowLeft,
+  Users,
+  Plus,
+  Smile,
+  Paperclip,
+  ImageIcon,
+} from "lucide-react"
+import { ChatUser, useChat } from "@/context/chat-context"
+import { useAuth } from "@/context/auth-context"
+
+export function ChatWidget() {
+  const { authenticatedUser } = useAuth();
+
+  if (!authenticatedUser) {
+    return;
+  }
+
+  const {
+    conversations,
+    messages,
+    activeConversation,
+    isGlobalChatOpen,
+    unreadTotal,
+    openGlobalChat,
+    closeGlobalChat,
+    setActiveConversation,
+    sendMessage,
+    markAsRead,
+    searchUsers,
+    getOrCreateConversation,
+  } = useChat()
+
+  const [isMinimized, setIsMinimized] = useState(false)
+  const [newMessage, setNewMessage] = useState("")
+  const [searchQuery, setSearchQuery] = useState("")
+  const [showUserSearch, setShowUserSearch] = useState(false)
+  const [searchResults, setSearchResults] = useState<ChatUser[]>([])
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  // Auto scroll to bottom
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [messages, activeConversation])
+
+  // Focus input when conversation changes
+  useEffect(() => {
+    if (activeConversation && !isMinimized) {
+      setTimeout(() => inputRef.current?.focus(), 100)
+    }
+  }, [activeConversation, isMinimized])
+
+  // Mark messages as read when conversation is active
+  useEffect(() => {
+    if (activeConversation && isGlobalChatOpen && !isMinimized) {
+      markAsRead(activeConversation)
+    }
+  }, [activeConversation, isGlobalChatOpen, isMinimized, markAsRead])
+
+  // Handle user search
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      const results = searchUsers(searchQuery)
+      setSearchResults(results)
+    } else {
+      setSearchResults([])
+    }
+  }, [searchQuery, searchUsers])
+
+  const handleSendMessage = () => {
+    if (!newMessage.trim() || !activeConversation) return
+
+    sendMessage(activeConversation, newMessage.trim())
+    setNewMessage("")
+  }
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault()
+      handleSendMessage()
+    }
+  }
+
+  const handleConversationClick = (conversationId: string) => {
+    setActiveConversation(conversationId)
+    setShowUserSearch(false)
+    markAsRead(conversationId)
+  }
+
+  const handleUserClick = (user: ChatUser) => {
+    const conversationId = getOrCreateConversation(user.id)
+    setActiveConversation(conversationId)
+    setShowUserSearch(false)
+    setSearchQuery("")
+    setSearchResults([])
+  }
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+  }
+
+  const formatLastSeen = (date: Date) => {
+    const now = new Date()
+    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60))
+
+    if (diffInMinutes < 1) return "Just now"
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`
+    return `${Math.floor(diffInMinutes / 1440)}d ago`
+  }
+
+  const activeConv = conversations.find((c) => c.id === activeConversation)
+  const activeMessages = activeConversation ? messages[activeConversation] || [] : []
+  const otherParticipant = activeConv?.participants.find((p) => p.id !== "current_user")
+
+  // Chat toggle button (always visible)
+  if (!isGlobalChatOpen) {
+    return (
+      <div className="fixed bottom-6 right-6 z-50">
+        <Button
+          onClick={openGlobalChat}
+          className="h-14 w-14 rounded-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 shadow-lg"
+          size="lg"
+        >
+          <MessageCircle className="h-6 w-6" />
+          {unreadTotal > 0 && (
+            <Badge className="absolute -top-2 -right-2 h-6 min-w-6 bg-red-500 text-white">
+              {unreadTotal > 99 ? "99+" : unreadTotal}
+            </Badge>
+          )}
+        </Button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="fixed bottom-6 right-6 z-50">
+      <Card className="w-96 h-[600px] shadow-2xl dark:bg-gray-800 dark:border-gray-700">
+        {/* Header */}
+        <CardHeader className="p-4 border-b dark:border-gray-700">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {activeConversation && !showUserSearch ? (
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setActiveConversation(null)}>
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+              ) : null}
+              <CardTitle className="text-lg dark:text-white">
+                {activeConversation && otherParticipant
+                  ? otherParticipant.name
+                  : showUserSearch
+                    ? "New Chat"
+                    : "Messages"}
+              </CardTitle>
+              {activeConversation && otherParticipant && (
+                <div className="flex items-center gap-1">
+                  <div
+                    className={`w-2 h-2 rounded-full ${otherParticipant.isOnline ? "bg-green-500" : "bg-gray-400"}`}
+                  />
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    {otherParticipant.isOnline
+                      ? "Online"
+                      : otherParticipant.lastSeen
+                        ? formatLastSeen(otherParticipant.lastSeen)
+                        : "Offline"}
+                  </span>
+                </div>
+              )}
+            </div>
+            <div className="flex items-center gap-1">
+              {activeConversation && (
+                <>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <Phone className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <Video className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </>
+              )}
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setIsMinimized(!isMinimized)}>
+                {isMinimized ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
+              </Button>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={closeGlobalChat}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+
+        {!isMinimized && (
+          <CardContent className="p-0 flex flex-col h-[calc(600px-80px)]">
+            {/* User Search View */}
+            {showUserSearch ? (
+              <div className="flex flex-col h-full">
+                <div className="p-4 border-b dark:border-gray-700">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400 dark:text-gray-500" />
+                    <Input
+                      placeholder="Search users..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    />
+                  </div>
+                </div>
+                <ScrollArea className="flex-1">
+                  <div className="p-2">
+                    {searchResults.length > 0 ? (
+                      searchResults.map((user) => (
+                        <div
+                          key={user.id}
+                          className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer"
+                          onClick={() => handleUserClick(user)}
+                        >
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={user.avatar || "/placeholder.svg"} />
+                            <AvatarFallback className="bg-blue-600 text-white">{user.name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <p className="font-medium dark:text-white">{user.name}</p>
+                            <div className="flex items-center gap-1">
+                              <div
+                                className={`w-2 h-2 rounded-full ${user.isOnline ? "bg-green-500" : "bg-gray-400"}`}
+                              />
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
+                                {user.isOnline ? "Online" : user.lastSeen ? formatLastSeen(user.lastSeen) : "Offline"}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : searchQuery.trim() ? (
+                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                        <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                        <p>No users found</p>
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                        <Search className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                        <p>Search for users to start a conversation</p>
+                      </div>
+                    )}
+                  </div>
+                </ScrollArea>
+              </div>
+            ) : activeConversation ? (
+              /* Chat View */
+              <div className="flex flex-col h-full">
+                {/* Messages */}
+                <ScrollArea className="flex-1 p-4">
+                  <div className="space-y-4">
+                    {activeMessages.map((message) => (
+                      <div
+                        key={message.id}
+                        className={`flex ${message.senderId === "current_user" ? "justify-end" : "justify-start"}`}
+                      >
+                        <div
+                          className={`flex items-end gap-2 max-w-[80%] ${message.senderId === "current_user" ? "flex-row-reverse" : ""
+                            }`}
+                        >
+                          {message.senderId !== "current_user" && (
+                            <Avatar className="h-6 w-6">
+                              <AvatarImage src={otherParticipant?.avatar || "/placeholder.svg"} />
+                              <AvatarFallback className="bg-blue-600 text-white text-xs">
+                                {otherParticipant?.name.charAt(0)}
+                              </AvatarFallback>
+                            </Avatar>
+                          )}
+                          <div
+                            className={`rounded-2xl px-4 py-2 ${message.senderId === "current_user"
+                              ? "bg-blue-600 text-white"
+                              : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                              }`}
+                          >
+                            <p className="text-sm">{message.content}</p>
+                            <p
+                              className={`text-xs mt-1 ${message.senderId === "current_user"
+                                ? "text-blue-100"
+                                : "text-gray-500 dark:text-gray-400"
+                                }`}
+                            >
+                              {formatTime(message.timestamp)}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    <div ref={messagesEndRef} />
+                  </div>
+                </ScrollArea>
+
+                {/* Message Input */}
+                <div className="p-4 border-t dark:border-gray-700">
+                  <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-500 dark:text-gray-400">
+                      <Paperclip className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-500 dark:text-gray-400">
+                      <ImageIcon className="h-4 w-4" />
+                    </Button>
+                    <div className="flex-1 relative">
+                      <Input
+                        ref={inputRef}
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        onKeyPress={handleKeyPress}
+                        placeholder="Type a message..."
+                        className="pr-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 text-gray-500 dark:text-gray-400"
+                      >
+                        <Smile className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <Button
+                      onClick={handleSendMessage}
+                      disabled={!newMessage.trim()}
+                      size="sm"
+                      className="h-8 w-8 p-0 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600"
+                    >
+                      <Send className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* Conversations List */
+              <div className="flex flex-col h-full">
+                <div className="p-4 border-b dark:border-gray-700">
+                  <Button
+                    onClick={() => setShowUserSearch(true)}
+                    className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    New Chat
+                  </Button>
+                </div>
+                <ScrollArea className="flex-1">
+                  {conversations.length > 0 ? (
+                    <div className="p-2">
+                      {conversations.map((conversation) => {
+                        const otherUser = conversation.participants.find((p) => p.id !== "current_user")
+                        const lastMessage = conversation.lastMessage
+
+                        return (
+                          <div
+                            key={conversation.id}
+                            className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer"
+                            onClick={() => handleConversationClick(conversation.id)}
+                          >
+                            <Avatar className="h-12 w-12">
+                              <AvatarImage src={otherUser?.avatar || "/placeholder.svg"} />
+                              <AvatarFallback className="bg-blue-600 text-white">
+                                {otherUser?.name.charAt(0)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between mb-1">
+                                <h3 className="font-medium text-sm dark:text-white truncate">{otherUser?.name}</h3>
+                                <div className="flex items-center gap-2">
+                                  {lastMessage && (
+                                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                                      {formatTime(lastMessage.timestamp)}
+                                    </span>
+                                  )}
+                                  {conversation.unreadCount > 0 && (
+                                    <Badge variant="destructive" className="text-xs h-5 min-w-5 px-1">
+                                      {conversation.unreadCount}
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                              {lastMessage && (
+                                <p className="text-sm text-gray-600 dark:text-gray-300 truncate">
+                                  {lastMessage.senderId === "current_user" ? "You: " : ""}
+                                  {lastMessage.content}
+                                </p>
+                              )}
+                              <div className="flex items-center gap-1 mt-1">
+                                <div
+                                  className={`w-2 h-2 rounded-full ${otherUser?.isOnline ? "bg-green-500" : "bg-gray-400"
+                                    }`}
+                                />
+                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                  {otherUser?.isOnline
+                                    ? "Online"
+                                    : otherUser?.lastSeen
+                                      ? formatLastSeen(otherUser.lastSeen)
+                                      : "Offline"}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400">
+                      <MessageCircle className="w-16 h-16 mb-4 opacity-50" />
+                      <p className="text-center">No conversations yet</p>
+                      <p className="text-sm text-center mt-2">Start a new chat to begin messaging</p>
+                    </div>
+                  )}
+                </ScrollArea>
+              </div>
+            )}
+          </CardContent>
+        )}
+      </Card>
+    </div>
+  )
+}

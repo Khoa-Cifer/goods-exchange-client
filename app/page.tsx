@@ -23,7 +23,6 @@ export default function HomePage() {
 
   const getConfirmedPost = async () => {
     const response = await getPostsByStatus(PostStatus.Confirmed);
-    console.log(response);
     setConfirmedPosts(response);
   }
 
