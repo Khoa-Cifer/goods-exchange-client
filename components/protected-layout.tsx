@@ -5,6 +5,8 @@ import { useAuth } from '@/context/auth-context';
 import { ThemeToggle } from './theme-toggle';
 import { UserDropdown } from './user-dropdown';
 import Link from 'next/link';
+import { Button } from './ui/button';
+import { HelpCircle } from 'lucide-react';
 
 interface ProtectedLayoutProps {
     children: React.ReactNode;
@@ -29,11 +31,17 @@ export default function ProtectedLayout({ children, allowedRoles }: ProtectedLay
                 <div className="container mx-auto px-4 py-4">
                     <div className="flex justify-between items-center">
                         <Link href="/">
-                         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Marketplace</h1>
+                            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Marketplace</h1>
                             <p className="text-gray-600 dark:text-gray-300">Goods Exchange Application</p>
                         </Link>
                         <div className="flex gap-4">
                             <ThemeToggle />
+                            <Link href="/buyer/request">
+                                <Button variant="outline" className="bg-transparent">
+                                    <HelpCircle className="w-4 h-4 mr-2" />
+                                    Support
+                                </Button>
+                            </Link>
                             {authenticatedUser && (
                                 <UserDropdown user={authenticatedUser} onLogout={logout} />
                             )}

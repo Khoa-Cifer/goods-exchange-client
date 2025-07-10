@@ -1,22 +1,22 @@
-export interface Request {
+export type Request = {
     id: string
+    description: string;
     userId: string
-    userName: string
-    userEmail: string
-    type: "general" | "technical" | "account" | "item" | "report"
-    subject: string
-    description: string
-    priority: "low" | "medium" | "high"
-    status: "pending" | "in_progress" | "resolved" | "closed"
-    attachments?: string[]
-    createdAt: Date
-    updatedAt: Date
-    adminResponse?: string
-    adminId?: string
-    relatedPostId?: string
+    requestType_id: string;
+    requestType: RequestType;
+    status: number;
+    response: string;
+    createdAt: string;
+    updatedAt: string;
 }
 
-export interface Report {
+export type RequestType = {
+    id: string;
+    type: string;
+    createdAt: string;
+}
+
+export type Report = {
     id: string
     reporterId: string
     reporterName: string

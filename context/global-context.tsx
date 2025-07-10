@@ -5,23 +5,19 @@ import http from '@/axios/http';
 import { useRouter } from 'next/navigation';
 import { UserTokenData } from '@/types/token';
 import { jwtDecode } from 'jwt-decode';
-import { RequestType } from '@/types/request';
-import { getRequestTypes } from '@/axios/user';
 
-interface AuthContextType {
+interface GlobalContextType {
     login: (googleResponse: any) => Promise<any>;
     logout: () => Promise<void>;
     authenticatedUser: UserTokenData | null;
     accessToken: string | null;
-    allRequestTypes: RequestType[];
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [accessTokenState, setAccessTokenState] = useState<string | null>(null);
     const [currentUser, setCurrentUser] = useState<UserTokenData | null>(null);
-    const [requestTypes, setRequestTypes] = useState<RequestType[]>([]);
     const router = useRouter();
 
     useEffect(() => {
@@ -31,14 +27,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const user = jwtDecode<UserTokenData>(token);
             setCurrentUser(user);
         }
-
-        getAllCurrentRequestTypes();
     }, [accessTokenState]);
-
-    const getAllCurrentRequestTypes = async () => {
-        const response = await getRequestTypes();
-        setRequestTypes(response);
-    }
 
     const login = async (googleResponse: any) => {
         try {
@@ -67,20 +56,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     return (
-        <AuthContext.Provider
-            value={{
-                login, logout,
-                authenticatedUser: currentUser,
-                accessToken: accessTokenState,
-                allRequestTypes: requestTypes
-            }}>
+        <GlobalContext.Provider value={{ login, logout, authenticatedUser: currentUser, accessToken: accessTokenState }}>
             {children}
-        </AuthContext.Provider>
+        </GlobalContext.Provider>
     );
 };
 
-export const useAuth = () => {
-    const context = useContext(AuthContext);
+export const useGlobalData = () => {
+    const context = useContext(GlobalContext);
     if (!context) {
         throw new Error('useAuth must be used within AuthProvider');
     }
