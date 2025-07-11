@@ -18,7 +18,7 @@ import {
   MoreVertical,
 } from "lucide-react"
 import { useState } from "react"
-import type { Post } from "@/types/post"
+import { Post } from "@/types/post"
 import { ChatButton } from "@/components/chat-button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { ReportModal } from "./report-modal"
@@ -123,7 +123,7 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
                   <div className="aspect-square bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
                     {post.images[currentImageIndex]?.imageBase64 ? (
                       <img
-                        src={`data:image/jpeg;base64,${post.images[currentImageIndex].imageBase64}`}
+                        src={post.images[currentImageIndex].imageBase64}
                         alt={`${post.title} - Image ${currentImageIndex + 1}`}
                         className="w-full h-full object-cover"
                       />
@@ -194,7 +194,7 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
                     >
                       {image.imageBase64 ? (
                         <img
-                          src={`data:image/jpeg;base64,${image.imageBase64}`}
+                          src={image.imageBase64}
                           alt={`Thumbnail ${index + 1}`}
                           className="w-full h-full object-cover"
                         />

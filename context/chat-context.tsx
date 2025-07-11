@@ -1,207 +1,220 @@
 "use client"
 
+import { Conversation, Message } from "@/types/message"
+import { User } from "@/types/user"
 import type React from "react"
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react"
 
-export interface ChatUser {
-  id: string
-  name: string
-  avatar?: string
-  isOnline: boolean
-  lastSeen?: Date
-}
-
-export interface ChatMessage {
-  id: string
-  senderId: string
-  receiverId: string
-  content: string
-  timestamp: Date
-  type: "text" | "image" | "file" | "system"
-  isRead: boolean
-  replyTo?: string
-}
-
-export interface ChatConversation {
-  id: string
-  participants: ChatUser[]
-  lastMessage?: ChatMessage
-  unreadCount: number
-  createdAt: Date
-  updatedAt: Date
-}
-
 interface ChatContextType {
-  conversations: ChatConversation[]
-  messages: { [conversationId: string]: ChatMessage[] }
+  conversations: Conversation[]
   activeConversation: string | null
   isGlobalChatOpen: boolean
   unreadTotal: number
+  currentUser: User | null
 
   // Actions
   openGlobalChat: () => void
   closeGlobalChat: () => void
   setActiveConversation: (conversationId: string | null) => void
-  sendMessage: (conversationId: string, content: string, type?: "text" | "image" | "file") => void
+  sendMessage: (conversationId: string, content: string) => void
   markAsRead: (conversationId: string) => void
   startConversation: (userId: string) => string
-  searchUsers: (query: string) => ChatUser[]
+  searchUsers: (query: string) => User[]
   getOrCreateConversation: (userId: string) => string
+  setCurrentUser: (user: User) => void
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined)
 
 // Mock users data - moved outside component to prevent recreation
-const mockUsers: ChatUser[] = [
+const mockUsers: User[] = [
   {
     id: "user_1",
-    name: "John Smith",
-    avatar: "/placeholder.svg?height=40&width=40",
-    isOnline: true,
+    username: "John Smith",
+    email: "john.smith@example.com",
+    provider: "google",
+    googleId: "google_123456789",
+    isActive: 1,
+    userRoles: [],
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30).toISOString(),
+    updatedAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+    messages: [],
+    conversations: [],
   },
   {
     id: "user_2",
-    name: "Sarah Johnson",
-    avatar: "/placeholder.svg?height=40&width=40",
-    isOnline: false,
-    lastSeen: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
+    username: "Sarah Johnson",
+    email: "sarah.johnson@example.com",
+    provider: "google",
+    googleId: "google_987654321",
+    isActive: 1,
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 25).toISOString(),
+    userRoles: [],
+    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+    messages: [],
+    conversations: [],
   },
   {
     id: "user_3",
-    name: "Mike Wilson",
-    avatar: "/placeholder.svg?height=40&width=40",
-    isOnline: true,
+    username: "Mike Wilson",
+    email: "mike.wilson@example.com",
+    provider: "google",
+    googleId: "google_456789123",
+    isActive: 1,
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 20).toISOString(),
+    updatedAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
+    messages: [],
+    userRoles: [],
+    conversations: [],
   },
   {
     id: "user_4",
-    name: "Emma Davis",
-    avatar: "/placeholder.svg?height=40&width=40",
-    isOnline: false,
-    lastSeen: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
+    username: "Emma Davis",
+    email: "emma.davis@example.com",
+    provider: "google",
+    googleId: "google_789123456",
+    isActive: 0,
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 15).toISOString(),
+    userRoles: [],
+    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
+    messages: [],
+    conversations: [],
   },
   {
     id: "user_5",
-    name: "Alex Brown",
-    avatar: "/placeholder.svg?height=40&width=40",
-    isOnline: true,
+    username: "Alex Brown",
+    email: "alex.brown@example.com",
+    provider: "google",
+    googleId: "google_321654987",
+    isActive: 1,
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 10).toISOString(),
+    userRoles: [],
+    updatedAt: new Date(Date.now() - 1000 * 60 * 10).toISOString(),
+    messages: [],
+    conversations: [],
   },
 ]
 
-// Initial mock data - moved outside component
-const initialMockConversations: ChatConversation[] = [
-  {
+// Current user mock data
+const mockCurrentUser: User = {
+  id: "current_user",
+  username: "You",
+  email: "current.user@example.com",
+  provider: "google",
+  googleId: "google_current_user",
+  userRoles: [],
+  isActive: 1,
+  createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 60).toISOString(),
+  updatedAt: new Date().toISOString(),
+  messages: [],
+  conversations: [],
+}
+
+// Create initial mock conversations with the new structure
+const createInitialConversations = (): Conversation[] => {
+  const now = new Date()
+
+  const conversation1: Conversation = {
     id: "conv_1",
-    participants: [{ id: "current_user", name: "You", isOnline: true }, mockUsers[0]],
-    unreadCount: 2,
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2),
-    updatedAt: new Date(Date.now() - 1000 * 60 * 15),
-  },
-  {
-    id: "conv_2",
-    participants: [{ id: "current_user", name: "You", isOnline: true }, mockUsers[1]],
-    unreadCount: 0,
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24),
-    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 2),
-  },
-  {
-    id: "conv_3",
-    participants: [{ id: "current_user", name: "You", isOnline: true }, mockUsers[2]],
-    unreadCount: 1,
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 12),
-    updatedAt: new Date(Date.now() - 1000 * 60 * 60),
-  },
-]
+    participants: [mockCurrentUser, mockUsers[0]],
+    messages: [
+      {
+        id: "msg_1",
+        content: "Hey! How are you doing?",
+        sender: mockUsers[0],
+        isRead: false,
+        createdAt: new Date(now.getTime() - 1000 * 60 * 30).toISOString(),
+        updatedAt: new Date(now.getTime() - 1000 * 60 * 30).toISOString(),
+      },
+      {
+        id: "msg_2",
+        content: "I'm doing great! Thanks for asking.",
+        sender: mockCurrentUser,
+        isRead: true,
+        createdAt: new Date(now.getTime() - 1000 * 60 * 25).toISOString(),
+        updatedAt: new Date(now.getTime() - 1000 * 60 * 25).toISOString(),
+      },
+      {
+        id: "msg_3",
+        content: "That's awesome! Want to catch up later?",
+        sender: mockUsers[0],
+        isRead: false,
+        createdAt: new Date(now.getTime() - 1000 * 60 * 15).toISOString(),
+        updatedAt: new Date(now.getTime() - 1000 * 60 * 15).toISOString(),
+      },
+    ],
+    createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 2).toISOString(),
+    updatedAt: new Date(now.getTime() - 1000 * 60 * 15).toISOString(),
+  }
 
-const initialMockMessages: { [conversationId: string]: ChatMessage[] } = {
-  conv_1: [
-    {
-      id: "msg_1",
-      senderId: "user_1",
-      receiverId: "current_user",
-      content: "Hey! How are you doing?",
-      timestamp: new Date(Date.now() - 1000 * 60 * 30),
-      type: "text",
-      isRead: false,
-    },
-    {
-      id: "msg_2",
-      senderId: "current_user",
-      receiverId: "user_1",
-      content: "I'm doing great! Thanks for asking.",
-      timestamp: new Date(Date.now() - 1000 * 60 * 25),
-      type: "text",
-      isRead: true,
-    },
-    {
-      id: "msg_3",
-      senderId: "user_1",
-      receiverId: "current_user",
-      content: "That's awesome! Want to catch up later?",
-      timestamp: new Date(Date.now() - 1000 * 60 * 15),
-      type: "text",
-      isRead: false,
-    },
-  ],
-  conv_2: [
-    {
-      id: "msg_4",
-      senderId: "user_2",
-      receiverId: "current_user",
-      content: "Thanks for your help yesterday!",
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2),
-      type: "text",
-      isRead: true,
-    },
-    {
-      id: "msg_5",
-      senderId: "current_user",
-      receiverId: "user_2",
-      content: "No problem at all! Happy to help.",
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2 + 1000 * 60 * 5),
-      type: "text",
-      isRead: true,
-    },
-  ],
-  conv_3: [
-    {
-      id: "msg_6",
-      senderId: "user_3",
-      receiverId: "current_user",
-      content: "Are you available for a quick call?",
-      timestamp: new Date(Date.now() - 1000 * 60 * 60),
-      type: "text",
-      isRead: false,
-    },
-  ],
+  const conversation2: Conversation = {
+    id: "conv_2",
+    participants: [mockCurrentUser, mockUsers[1]],
+    messages: [
+      {
+        id: "msg_4",
+        content: "Thanks for your help yesterday!",
+        sender: mockUsers[1],
+        isRead: true,
+        createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 2).toISOString(),
+        updatedAt: new Date(now.getTime() - 1000 * 60 * 60 * 2).toISOString(),
+      },
+      {
+        id: "msg_5",
+        content: "No problem at all! Happy to help.",
+        sender: mockCurrentUser,
+        isRead: true,
+        createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 2 + 1000 * 60 * 5).toISOString(),
+        updatedAt: new Date(now.getTime() - 1000 * 60 * 60 * 2 + 1000 * 60 * 5).toISOString(),
+      },
+    ],
+    createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 24).toISOString(),
+    updatedAt: new Date(now.getTime() - 1000 * 60 * 60 * 2 + 1000 * 60 * 5).toISOString(),
+  }
+
+  const conversation3: Conversation = {
+    id: "conv_3",
+    participants: [mockCurrentUser, mockUsers[2]],
+    messages: [
+      {
+        id: "msg_6",
+        content: "Are you available for a quick call?",
+        sender: mockUsers[2],
+        isRead: false,
+        createdAt: new Date(now.getTime() - 1000 * 60 * 60).toISOString(),
+        updatedAt: new Date(now.getTime() - 1000 * 60 * 60).toISOString(),
+      },
+    ],
+    createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 12).toISOString(),
+    updatedAt: new Date(now.getTime() - 1000 * 60 * 60).toISOString(),
+  }
+
+  return [conversation1, conversation2, conversation3]
 }
 
 export function ChatProvider({ children }: { children: React.ReactNode }) {
-  const [conversations, setConversations] = useState<ChatConversation[]>([])
-  const [messages, setMessages] = useState<{ [conversationId: string]: ChatMessage[] }>({})
+  const [conversations, setConversations] = useState<Conversation[]>([])
   const [activeConversation, setActiveConversation] = useState<string | null>(null)
   const [isGlobalChatOpen, setIsGlobalChatOpen] = useState(false)
+  const [currentUser, setCurrentUser] = useState<User | null>(mockCurrentUser)
   const [isInitialized, setIsInitialized] = useState(false)
 
   // Initialize data only once
   useEffect(() => {
     if (!isInitialized) {
-      // Set initial conversations with last messages
-      const conversationsWithLastMessages = initialMockConversations.map((conv) => {
-        const convMessages = initialMockMessages[conv.id] || []
-        const lastMessage = convMessages[convMessages.length - 1]
-        return { ...conv, lastMessage }
-      })
-
-      setConversations(conversationsWithLastMessages)
-      setMessages(initialMockMessages)
+      const initialConversations = createInitialConversations()
+      setConversations(initialConversations)
       setIsInitialized(true)
     }
   }, [isInitialized])
 
   // Memoize unread total to prevent recalculation on every render
   const unreadTotal = useMemo(() => {
-    return conversations.reduce((total, conv) => total + conv.unreadCount, 0)
-  }, [conversations])
+    return conversations.reduce((total, conv) => {
+      const unreadCount = conv.messages.filter((msg) => !msg.isRead && msg.sender.id !== currentUser?.id).length
+      return total + unreadCount
+    }, 0)
+  }, [conversations, currentUser?.id])
 
   // Memoize action functions to prevent recreation on every render
   const openGlobalChat = useCallback(() => setIsGlobalChatOpen(true), [])
@@ -212,33 +225,40 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const sendMessage = useCallback(
-    (conversationId: string, content: string, type: "text" | "image" | "file" = "text") => {
-      const newMessage: ChatMessage = {
+    (conversationId: string, content: string) => {
+      if (!currentUser) return
+
+      const newMessage: Message = {
         id: `msg_${Date.now()}`,
-        senderId: "current_user",
-        receiverId: "",
-        content,
-        timestamp: new Date(),
-        type,
+        content: content.trim(),
+        sender: currentUser,
         isRead: false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       }
 
-      // Update messages
-      setMessages((prev) => ({
-        ...prev,
-        [conversationId]: [...(prev[conversationId] || []), newMessage],
-      }))
-
-      // Update conversation's last message and timestamp
+      // Update conversation with new message
       setConversations((prev) =>
         prev.map((conv) =>
-          conv.id === conversationId ? { ...conv, lastMessage: newMessage, updatedAt: new Date() } : conv,
+          conv.id === conversationId
+            ? {
+              ...conv,
+              messages: [...conv.messages, newMessage],
+              updatedAt: new Date().toISOString(),
+            }
+            : conv,
         ),
       )
 
       // Simulate response after a delay
       const timeoutId = setTimeout(
         () => {
+          const conversation = conversations.find((c) => c.id === conversationId)
+          if (!conversation) return
+
+          const otherParticipant = conversation.participants.find((p) => p.id !== currentUser.id)
+          if (!otherParticipant) return
+
           const responses = [
             "Thanks for your message!",
             "I'll get back to you soon.",
@@ -248,31 +268,23 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
             "I appreciate you reaching out.",
           ]
 
-          const responseMessage: ChatMessage = {
+          const responseMessage: Message = {
             id: `msg_${Date.now()}_response`,
-            senderId: "other_user",
-            receiverId: "current_user",
             content: responses[Math.floor(Math.random() * responses.length)],
-            timestamp: new Date(),
-            type: "text",
+            sender: otherParticipant,
             isRead: false,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
           }
 
-          setMessages((prev) => ({
-            ...prev,
-            [conversationId]: [...(prev[conversationId] || []), responseMessage],
-          }))
-
-          // Update unread count only if conversation is not active
           setConversations((prev) =>
             prev.map((conv) =>
               conv.id === conversationId
                 ? {
-                    ...conv,
-                    lastMessage: responseMessage,
-                    updatedAt: new Date(),
-                    unreadCount: conv.unreadCount + 1,
-                  }
+                  ...conv,
+                  messages: [...conv.messages, responseMessage],
+                  updatedAt: new Date().toISOString(),
+                }
                 : conv,
             ),
           )
@@ -283,22 +295,33 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       // Cleanup timeout on unmount
       return () => clearTimeout(timeoutId)
     },
-    [],
+    [currentUser, conversations],
   )
 
-  const markAsRead = useCallback((conversationId: string) => {
-    setConversations((prev) => prev.map((conv) => (conv.id === conversationId ? { ...conv, unreadCount: 0 } : conv)))
+  const markAsRead = useCallback(
+    (conversationId: string) => {
+      if (!currentUser) return
 
-    setMessages((prev) => ({
-      ...prev,
-      [conversationId]: (prev[conversationId] || []).map((msg) =>
-        msg.receiverId === "current_user" ? { ...msg, isRead: true } : msg,
-      ),
-    }))
-  }, [])
+      setConversations((prev) =>
+        prev.map((conv) =>
+          conv.id === conversationId
+            ? {
+              ...conv,
+              messages: conv.messages.map((msg) =>
+                msg.sender.id !== currentUser.id ? { ...msg, isRead: true } : msg,
+              ),
+            }
+            : conv,
+        ),
+      )
+    },
+    [currentUser],
+  )
 
   const getOrCreateConversation = useCallback(
     (userId: string): string => {
+      if (!currentUser) return ""
+
       // Check if conversation already exists
       const existingConv = conversations.find((conv) => conv.participants.some((p) => p.id === userId))
 
@@ -310,20 +333,19 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       const user = mockUsers.find((u) => u.id === userId)
       if (!user) return ""
 
-      const newConversation: ChatConversation = {
+      const newConversation: Conversation = {
         id: `conv_${Date.now()}`,
-        participants: [{ id: "current_user", name: "You", isOnline: true }, user],
-        unreadCount: 0,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        participants: [currentUser, user],
+        messages: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       }
 
       setConversations((prev) => [newConversation, ...prev])
-      setMessages((prev) => ({ ...prev, [newConversation.id]: [] }))
 
       return newConversation.id
     },
-    [conversations],
+    [conversations, currentUser],
   )
 
   const startConversation = useCallback(
@@ -333,20 +355,25 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     [getOrCreateConversation],
   )
 
-  const searchUsers = useCallback((query: string): ChatUser[] => {
-    if (!query.trim()) return mockUsers
+  const searchUsers = useCallback((query: string): User[] => {
+    if (!query.trim()) return mockUsers.filter((user) => user.isActive === 1)
 
-    return mockUsers.filter((user) => user.name.toLowerCase().includes(query.toLowerCase()))
+    return mockUsers.filter(
+      (user) =>
+        user.isActive === 1 &&
+        (user.username.toLowerCase().includes(query.toLowerCase()) ||
+          user.email.toLowerCase().includes(query.toLowerCase())),
+    )
   }, [])
 
   // Memoize the context value to prevent unnecessary re-renders
   const contextValue = useMemo(
     () => ({
       conversations,
-      messages,
       activeConversation,
       isGlobalChatOpen,
       unreadTotal,
+      currentUser,
       openGlobalChat,
       closeGlobalChat,
       setActiveConversation,
@@ -355,13 +382,14 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       startConversation,
       searchUsers,
       getOrCreateConversation,
+      setCurrentUser,
     }),
     [
       conversations,
-      messages,
       activeConversation,
       isGlobalChatOpen,
       unreadTotal,
+      currentUser,
       openGlobalChat,
       closeGlobalChat,
       sendMessage,

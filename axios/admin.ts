@@ -1,15 +1,5 @@
 import http from "./http";
 
-export const getAllUsers = async () => {
-  try {
-    const response = await http.get('/admin/users/all-users');
-    return response.data.result;
-  } catch (error) {
-    console.error('Failed to fetch users:', error);
-    throw error;
-  }
-}
-
 export const banUser = async (userId: string) => {
   try {
     const response = await http.put('/admin/users/ban-user', { userId });

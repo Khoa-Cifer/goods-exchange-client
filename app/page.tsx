@@ -180,25 +180,8 @@ export default function HomePage() {
             <p className="text-gray-600 dark:text-gray-300 mb-4">
               Connect buyers and sellers in a seamless exchange platform
             </p>
-            <div className="flex justify-center space-x-6 text-sm text-gray-500 dark:text-gray-400">
-              <Link href="#" className="hover:text-blue-600 dark:hover:text-blue-400">
-                About
-              </Link>
-              <Link href="#" className="hover:text-blue-600 dark:hover:text-blue-400">
-                Terms
-              </Link>
-              <Link href="#" className="hover:text-blue-600 dark:hover:text-blue-400">
-                Privacy
-              </Link>
-              <Link href="#" className="hover:text-blue-600 dark:hover:text-blue-400">
-                Support
-              </Link>
-              <Link href="/admin" className="hover:text-blue-600 dark:hover:text-blue-400">
-                Admin
-              </Link>
-            </div>
             <p className="text-xs text-gray-400 dark:text-gray-500 mt-4">
-              © 2024 Exchange Marketplace. All rights reserved.
+              © 2025 Exchange Marketplace. All rights reserved.
             </p>
           </div>
         </div>

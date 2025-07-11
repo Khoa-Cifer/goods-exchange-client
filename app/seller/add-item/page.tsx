@@ -15,13 +15,13 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { ImageFile } from "@/types/image"
 import { PostType } from "@/enum/post-type"
 import { Category } from "@/types/category"
-import { getAllCategories } from "@/axios/user"
 import { Badge } from "@/components/ui/badge"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui/command"
 import { PostCampus } from "@/enum/post-campus"
 import { showNotification } from "@/components/notification-helper"
 import { createPost } from "@/axios/post"
+import { getAllCategories } from "@/axios/public"
 
 export default function AddItem() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -33,6 +33,8 @@ export default function AddItem() {
   const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
   const [campus, setCampus] = useState<string>("");
   const [type, setType] = useState<string>("");
+
+  const [isPostCreating, setIsPostCreating] = useState<boolean>(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const fileUpdateRef = useRef<HTMLInputElement>(null);
@@ -132,7 +134,7 @@ export default function AddItem() {
       showNotification.warning("Please fill in all required fields and add at least one image.")
       return;
     }
-
+    setIsPostCreating(true);
     try {
       const payload = {
         title,
@@ -153,6 +155,8 @@ export default function AddItem() {
       // Optionally redirect or reset form here
     } catch (error: any) {
       showNotification.error(error?.response?.data?.Message || "Failed to create post.");
+    } finally {
+      setIsPostCreating(false);
     }
   }
 
@@ -381,8 +385,13 @@ export default function AddItem() {
                 <Button
                   onClick={handleCreatePost}
                   className="flex-1 bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600"
+                  disabled={isPostCreating}
                 >
-                  Publish Post
+                  {isPostCreating ? (
+                    <>Creating your post</>
+                  ) : (
+                    <>Publish post</>
+                  )}
                 </Button>
               </div>
             </CardContent>

@@ -1,3 +1,5 @@
+import { Conversation, Message } from "./message";
+
 export type UserRole = {
     id: string;
     userId: string;
@@ -17,6 +19,8 @@ export type User = {
     userRoles: UserRole[];
     createdAt: string;
     updatedAt: string;
+    messages: Message[];
+    conversations: Conversation[];
 };
 
 export type Role = {

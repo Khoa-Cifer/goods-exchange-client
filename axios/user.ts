@@ -1,10 +1,5 @@
 import http from "./http";
 
-export const getAllCategories = async () => {
-  const response = await http.get('/users/categories/all-categories');
-  return response.data.result;
-}
-
 export async function getRequestTypes() {
   const response = await http.get(`/users/all-request-types`);
   return response.data.result;

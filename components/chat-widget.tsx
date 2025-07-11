@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -26,22 +26,16 @@ import {
   Paperclip,
   ImageIcon,
 } from "lucide-react"
-import { ChatUser, useChat } from "@/context/chat-context"
-import { useAuth } from "@/context/auth-context"
+import { useChat } from "@/context/chat-context"
+import { User } from "@/types/user"
 
 export function ChatWidget() {
-  const { authenticatedUser } = useAuth();
-
-  if (!authenticatedUser) {
-    return;
-  }
-
   const {
     conversations,
-    messages,
     activeConversation,
     isGlobalChatOpen,
     unreadTotal,
+    currentUser,
     openGlobalChat,
     closeGlobalChat,
     setActiveConversation,
@@ -55,21 +49,37 @@ export function ChatWidget() {
   const [newMessage, setNewMessage] = useState("")
   const [searchQuery, setSearchQuery] = useState("")
   const [showUserSearch, setShowUserSearch] = useState(false)
-  const [searchResults, setSearchResults] = useState<ChatUser[]>([])
+  const [searchResults, setSearchResults] = useState<User[]>([])
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Auto scroll to bottom
+  // Memoize active conversation and messages to prevent unnecessary recalculations
+  const activeConv = useMemo(
+    () => conversations.find((c) => c.id === activeConversation),
+    [conversations, activeConversation],
+  )
+
+  const activeMessages = useMemo(() => activeConv?.messages || [], [activeConv])
+
+  const otherParticipant = useMemo(
+    () => activeConv?.participants.find((p) => p.id !== currentUser?.id),
+    [activeConv, currentUser?.id],
+  )
+
+  // Auto scroll to bottom - only when messages change
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages, activeConversation])
+    if (activeMessages.length > 0) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    }
+  }, [activeMessages.length])
 
   // Focus input when conversation changes
   useEffect(() => {
-    if (activeConversation && !isMinimized) {
-      setTimeout(() => inputRef.current?.focus(), 100)
+    if (activeConversation && !isMinimized && isGlobalChatOpen) {
+      const timer = setTimeout(() => inputRef.current?.focus(), 100)
+      return () => clearTimeout(timer)
     }
-  }, [activeConversation, isMinimized])
+  }, [activeConversation, isMinimized, isGlobalChatOpen])
 
   // Mark messages as read when conversation is active
   useEffect(() => {
@@ -78,49 +88,62 @@ export function ChatWidget() {
     }
   }, [activeConversation, isGlobalChatOpen, isMinimized, markAsRead])
 
-  // Handle user search
+  // Handle user search with debouncing
   useEffect(() => {
-    if (searchQuery.trim()) {
+    if (!showUserSearch) return
+
+    const timer = setTimeout(() => {
       const results = searchUsers(searchQuery)
       setSearchResults(results)
-    } else {
-      setSearchResults([])
-    }
-  }, [searchQuery, searchUsers])
+    }, 300)
 
-  const handleSendMessage = () => {
+    return () => clearTimeout(timer)
+  }, [searchQuery, searchUsers, showUserSearch])
+
+  const handleSendMessage = useCallback(() => {
     if (!newMessage.trim() || !activeConversation) return
 
     sendMessage(activeConversation, newMessage.trim())
     setNewMessage("")
-  }
+  }, [newMessage, activeConversation, sendMessage])
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault()
-      handleSendMessage()
-    }
-  }
+  const handleKeyPress = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault()
+        handleSendMessage()
+      }
+    },
+    [handleSendMessage],
+  )
 
-  const handleConversationClick = (conversationId: string) => {
-    setActiveConversation(conversationId)
-    setShowUserSearch(false)
-    markAsRead(conversationId)
-  }
+  const handleConversationClick = useCallback(
+    (conversationId: string) => {
+      setActiveConversation(conversationId)
+      setShowUserSearch(false)
+      markAsRead(conversationId)
+    },
+    [setActiveConversation, markAsRead],
+  )
 
-  const handleUserClick = (user: ChatUser) => {
-    const conversationId = getOrCreateConversation(user.id)
-    setActiveConversation(conversationId)
-    setShowUserSearch(false)
-    setSearchQuery("")
-    setSearchResults([])
-  }
+  const handleUserClick = useCallback(
+    (user: User) => {
+      const conversationId = getOrCreateConversation(user.id)
+      setActiveConversation(conversationId)
+      setShowUserSearch(false)
+      setSearchQuery("")
+      setSearchResults([])
+    },
+    [getOrCreateConversation, setActiveConversation],
+  )
 
-  const formatTime = (date: Date) => {
+  const formatTime = useCallback((dateString: string) => {
+    const date = new Date(dateString)
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-  }
+  }, [])
 
-  const formatLastSeen = (date: Date) => {
+  const formatLastSeen = useCallback((dateString: string) => {
+    const date = new Date(dateString)
     const now = new Date()
     const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60))
 
@@ -128,11 +151,31 @@ export function ChatWidget() {
     if (diffInMinutes < 60) return `${diffInMinutes}m ago`
     if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`
     return `${Math.floor(diffInMinutes / 1440)}d ago`
-  }
+  }, [])
 
-  const activeConv = conversations.find((c) => c.id === activeConversation)
-  const activeMessages = activeConversation ? messages[activeConversation] || [] : []
-  const otherParticipant = activeConv?.participants.find((p) => p.id !== "current_user")
+  const getUnreadCount = useCallback(
+    (conversation: any) => {
+      if (!currentUser) return 0
+      return conversation.messages.filter((msg: any) => !msg.isRead && msg.sender.id !== currentUser.id).length
+    },
+    [currentUser],
+  )
+
+  const getUserInitials = useCallback((username: string) => {
+    return username
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+  }, [])
+
+  const isUserOnline = useCallback((user: User) => {
+    // Simple logic: user is online if updated within last 5 minutes
+    const lastUpdate = new Date(user.updatedAt)
+    const now = new Date()
+    const diffInMinutes = (now.getTime() - lastUpdate.getTime()) / (1000 * 60)
+    return diffInMinutes < 5
+  }, [])
 
   // Chat toggle button (always visible)
   if (!isGlobalChatOpen) {
@@ -168,7 +211,7 @@ export function ChatWidget() {
               ) : null}
               <CardTitle className="text-lg dark:text-white">
                 {activeConversation && otherParticipant
-                  ? otherParticipant.name
+                  ? otherParticipant.username
                   : showUserSearch
                     ? "New Chat"
                     : "Messages"}
@@ -176,14 +219,12 @@ export function ChatWidget() {
               {activeConversation && otherParticipant && (
                 <div className="flex items-center gap-1">
                   <div
-                    className={`w-2 h-2 rounded-full ${otherParticipant.isOnline ? "bg-green-500" : "bg-gray-400"}`}
+                    className={`w-2 h-2 rounded-full ${
+                      isUserOnline(otherParticipant) ? "bg-green-500" : "bg-gray-400"
+                    }`}
                   />
                   <span className="text-xs text-gray-500 dark:text-gray-400">
-                    {otherParticipant.isOnline
-                      ? "Online"
-                      : otherParticipant.lastSeen
-                        ? formatLastSeen(otherParticipant.lastSeen)
-                        : "Offline"}
+                    {isUserOnline(otherParticipant) ? "Online" : formatLastSeen(otherParticipant.updatedAt)}
                   </span>
                 </div>
               )}
@@ -238,17 +279,22 @@ export function ChatWidget() {
                           onClick={() => handleUserClick(user)}
                         >
                           <Avatar className="h-10 w-10">
-                            <AvatarImage src={user.avatar || "/placeholder.svg"} />
-                            <AvatarFallback className="bg-blue-600 text-white">{user.name.charAt(0)}</AvatarFallback>
+                            <AvatarImage src="/placeholder.svg?height=40&width=40" />
+                            <AvatarFallback className="bg-blue-600 text-white">
+                              {getUserInitials(user.username)}
+                            </AvatarFallback>
                           </Avatar>
                           <div className="flex-1">
-                            <p className="font-medium dark:text-white">{user.name}</p>
+                            <p className="font-medium dark:text-white">{user.username}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
                             <div className="flex items-center gap-1">
                               <div
-                                className={`w-2 h-2 rounded-full ${user.isOnline ? "bg-green-500" : "bg-gray-400"}`}
+                                className={`w-2 h-2 rounded-full ${
+                                  isUserOnline(user) ? "bg-green-500" : "bg-gray-400"
+                                }`}
                               />
                               <span className="text-xs text-gray-500 dark:text-gray-400">
-                                {user.isOnline ? "Online" : user.lastSeen ? formatLastSeen(user.lastSeen) : "Offline"}
+                                {isUserOnline(user) ? "Online" : formatLastSeen(user.updatedAt)}
                               </span>
                             </div>
                           </div>
@@ -277,34 +323,37 @@ export function ChatWidget() {
                     {activeMessages.map((message) => (
                       <div
                         key={message.id}
-                        className={`flex ${message.senderId === "current_user" ? "justify-end" : "justify-start"}`}
+                        className={`flex ${message.sender.id === currentUser?.id ? "justify-end" : "justify-start"}`}
                       >
                         <div
-                          className={`flex items-end gap-2 max-w-[80%] ${message.senderId === "current_user" ? "flex-row-reverse" : ""
-                            }`}
+                          className={`flex items-end gap-2 max-w-[80%] ${
+                            message.sender.id === currentUser?.id ? "flex-row-reverse" : ""
+                          }`}
                         >
-                          {message.senderId !== "current_user" && (
+                          {message.sender.id !== currentUser?.id && (
                             <Avatar className="h-6 w-6">
-                              <AvatarImage src={otherParticipant?.avatar || "/placeholder.svg"} />
+                              <AvatarImage src="/placeholder.svg?height=24&width=24" />
                               <AvatarFallback className="bg-blue-600 text-white text-xs">
-                                {otherParticipant?.name.charAt(0)}
+                                {getUserInitials(message.sender.username)}
                               </AvatarFallback>
                             </Avatar>
                           )}
                           <div
-                            className={`rounded-2xl px-4 py-2 ${message.senderId === "current_user"
-                              ? "bg-blue-600 text-white"
-                              : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
-                              }`}
+                            className={`rounded-2xl px-4 py-2 ${
+                              message.sender.id === currentUser?.id
+                                ? "bg-blue-600 text-white"
+                                : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                            }`}
                           >
                             <p className="text-sm">{message.content}</p>
                             <p
-                              className={`text-xs mt-1 ${message.senderId === "current_user"
-                                ? "text-blue-100"
-                                : "text-gray-500 dark:text-gray-400"
-                                }`}
+                              className={`text-xs mt-1 ${
+                                message.sender.id === currentUser?.id
+                                  ? "text-blue-100"
+                                  : "text-gray-500 dark:text-gray-400"
+                              }`}
                             >
-                              {formatTime(message.timestamp)}
+                              {formatTime(message.createdAt)}
                             </p>
                           </div>
                         </div>
@@ -367,8 +416,9 @@ export function ChatWidget() {
                   {conversations.length > 0 ? (
                     <div className="p-2">
                       {conversations.map((conversation) => {
-                        const otherUser = conversation.participants.find((p) => p.id !== "current_user")
-                        const lastMessage = conversation.lastMessage
+                        const otherUser = conversation.participants.find((p) => p.id !== currentUser?.id)
+                        const lastMessage = conversation.messages[conversation.messages.length - 1]
+                        const unreadCount = getUnreadCount(conversation)
 
                         return (
                           <div
@@ -377,43 +427,46 @@ export function ChatWidget() {
                             onClick={() => handleConversationClick(conversation.id)}
                           >
                             <Avatar className="h-12 w-12">
-                              <AvatarImage src={otherUser?.avatar || "/placeholder.svg"} />
+                              <AvatarImage src="/placeholder.svg?height=48&width=48" />
                               <AvatarFallback className="bg-blue-600 text-white">
-                                {otherUser?.name.charAt(0)}
+                                {otherUser ? getUserInitials(otherUser.username) : "?"}
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between mb-1">
-                                <h3 className="font-medium text-sm dark:text-white truncate">{otherUser?.name}</h3>
+                                <h3 className="font-medium text-sm dark:text-white truncate">
+                                  {otherUser?.username || "Unknown User"}
+                                </h3>
                                 <div className="flex items-center gap-2">
                                   {lastMessage && (
                                     <span className="text-xs text-gray-500 dark:text-gray-400">
-                                      {formatTime(lastMessage.timestamp)}
+                                      {formatTime(lastMessage.createdAt)}
                                     </span>
                                   )}
-                                  {conversation.unreadCount > 0 && (
+                                  {unreadCount > 0 && (
                                     <Badge variant="destructive" className="text-xs h-5 min-w-5 px-1">
-                                      {conversation.unreadCount}
+                                      {unreadCount}
                                     </Badge>
                                   )}
                                 </div>
                               </div>
                               {lastMessage && (
                                 <p className="text-sm text-gray-600 dark:text-gray-300 truncate">
-                                  {lastMessage.senderId === "current_user" ? "You: " : ""}
+                                  {lastMessage.sender.id === currentUser?.id ? "You: " : ""}
                                   {lastMessage.content}
                                 </p>
                               )}
                               <div className="flex items-center gap-1 mt-1">
                                 <div
-                                  className={`w-2 h-2 rounded-full ${otherUser?.isOnline ? "bg-green-500" : "bg-gray-400"
-                                    }`}
+                                  className={`w-2 h-2 rounded-full ${
+                                    otherUser && isUserOnline(otherUser) ? "bg-green-500" : "bg-gray-400"
+                                  }`}
                                 />
                                 <span className="text-xs text-gray-500 dark:text-gray-400">
-                                  {otherUser?.isOnline
+                                  {otherUser && isUserOnline(otherUser)
                                     ? "Online"
-                                    : otherUser?.lastSeen
-                                      ? formatLastSeen(otherUser.lastSeen)
+                                    : otherUser
+                                      ? formatLastSeen(otherUser.updatedAt)
                                       : "Offline"}
                                 </span>
                               </div>

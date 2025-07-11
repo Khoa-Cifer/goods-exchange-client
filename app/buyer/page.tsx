@@ -67,13 +67,6 @@ export default function BuyerDashboard() {
           />
         ))}
       </div>
-
-      {/* Load More */}
-      <div className="text-center mt-8">
-        <Button variant="outline" size="lg" className="bg-transparent">
-          Load More Items
-        </Button>
-      </div>
     </div>
   )
 }

@@ -10,21 +10,22 @@ import { HelpCircle } from 'lucide-react';
 
 interface ProtectedLayoutProps {
     children: React.ReactNode;
-    allowedRoles: string[];
+    allowedRole: string;
 }
 
-export default function ProtectedLayout({ children, allowedRoles }: ProtectedLayoutProps) {
-    const { accessToken, authenticatedUser, logout } = useAuth();
+export default function ProtectedLayout({ children, allowedRole }: ProtectedLayoutProps) {
+    const { accessToken, authenticatedUser, logout, setCurrentRoleUsing } = useAuth();
+
     if (!accessToken || !authenticatedUser) {
         console.warn('ProtectedLayout: No user found, redirecting to login.');
         redirect('/');
     }
 
     const roleArray = JSON.parse(authenticatedUser.roleName);
-    if (!roleArray.some((roleName: string) => allowedRoles.includes(roleName))) {
+    if (!roleArray.includes(allowedRole)) {
         console.warn('ProtectedLayout: Unauthorized access, redirecting to home.');
     }
-
+    setCurrentRoleUsing(allowedRole);
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
             <header className="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700">
@@ -36,12 +37,15 @@ export default function ProtectedLayout({ children, allowedRoles }: ProtectedLay
                         </Link>
                         <div className="flex gap-4">
                             <ThemeToggle />
-                            <Link href="/buyer/request">
-                                <Button variant="outline" className="bg-transparent">
-                                    <HelpCircle className="w-4 h-4 mr-2" />
-                                    Support
-                                </Button>
-                            </Link>
+                            {allowedRole === "Seller" || allowedRole === "Buyer" && (
+                                <Link href="/request">
+                                    <Button variant="outline" className="bg-transparent">
+                                        <HelpCircle className="w-4 h-4 mr-2" />
+                                        Support
+                                    </Button>
+                                </Link>
+                            )}
+
                             {authenticatedUser && (
                                 <UserDropdown user={authenticatedUser} onLogout={logout} />
                             )}

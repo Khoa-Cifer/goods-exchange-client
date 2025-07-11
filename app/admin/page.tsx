@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Search, Filter, Calendar, DollarSign, Eye, FileText, MapPin, Tag, XCircle, CheckCircle, Package } from "lucide-react"
+import { Search, Filter, XCircle, CheckCircle, Package } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { useEffect, useState } from "react"
-import { assignRoleToUser, getAllUsers, unassignRoleToUser } from "@/axios/admin";
+import { assignRoleToUser, unassignRoleToUser } from "@/axios/admin";
 import { User } from "@/types/user";
 import { formatDate } from "@/lib/utils";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -16,11 +16,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { showNotification } from "@/components/notification-helper";
 import { useAuth } from "@/context/auth-context";
 import { Category } from "@/types/category";
-import { getAllCategories } from "@/axios/user";
-import { getAllPosts } from "@/axios/post";
 import { Post, PostEntity } from "@/types/post";
 import { AdminPostCard } from "@/components/admin-post-card";
 import { PostStatus } from "@/enum/post-status";
+import { getAllCategories, getAllPosts, getAllUsers } from "@/axios/public";
 
 export default function AdminDashboard() {
   const { authenticatedUser } = useAuth();

@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { AlertTriangle, Send } from "lucide-react"
 import { showNotification } from "@/components/notification-helper"
-import type { Post } from "@/types/post"
+import { Post } from "@/types/post"
 
 interface ReportModalProps {
   post: Post | null

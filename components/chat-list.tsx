@@ -6,68 +6,146 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { MessageCircle, Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { useState } from "react"
-import type { Post } from "@/types/post"
+import { ChatModal } from "@/components/chat-modal"
 import { mockPosts } from "@/data/mock-posts"
-import { ChatModal } from "./chat-modal"
+import { Post } from "@/types/post"
+import { User } from "@/types/user"
+import { Conversation } from "@/types/message"
 
 interface ChatPreview {
   id: string
   post: Post
-  lastMessage: string
-  lastMessageTime: Date
-  unreadCount: number
-  otherUserName: string
-  otherUserAvatar?: string
+  conversation: Conversation
+  otherUser: User
 }
 
 export function ChatList() {
-  const [selectedChat, setSelectedChat] = useState<Post | null>(null)
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null)
   const [isChatModalOpen, setIsChatModalOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
 
-  // Mock chat data
+  // Mock chat data with new structure
+  const mockOtherUsers: User[] = [
+    {
+      id: "buyer_1",
+      username: "John Buyer",
+      email: "john.buyer@example.com",
+      provider: "google",
+      googleId: "google_buyer_1",
+      isActive: 1,
+      userRoles: [],
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(),
+      updatedAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
+      messages: [],
+      conversations: [],
+    },
+    {
+      id: "buyer_2",
+      username: "Sarah Wilson",
+      email: "sarah.wilson@example.com",
+      provider: "google",
+      googleId: "google_buyer_2",
+      isActive: 1,
+      userRoles: [],
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(),
+      updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+      messages: [],
+      conversations: [],
+    },
+    {
+      id: "buyer_3",
+      username: "Mike Johnson",
+      email: "mike.johnson@example.com",
+      provider: "google",
+      googleId: "google_buyer_3",
+      userRoles: [],
+      isActive: 1,
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
+      updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+      messages: [],
+      conversations: [],
+    },
+  ]
+
   const chats: ChatPreview[] = [
     {
       id: "chat_1",
       post: mockPosts[0],
-      lastMessage: "Is this still available?",
-      lastMessageTime: new Date(Date.now() - 1000 * 60 * 15),
-      unreadCount: 2,
-      otherUserName: "John Buyer",
-      otherUserAvatar: "/placeholder.svg?height=40&width=40",
+      otherUser: mockOtherUsers[0],
+      conversation: {
+        id: "conv_1",
+        participants: [mockOtherUsers[0]],
+        messages: [
+          {
+            id: "msg_1",
+            content: "Is this still available?",
+            sender: mockOtherUsers[0],
+            isRead: false,
+            createdAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
+            updatedAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
+          },
+        ],
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+        updatedAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
+      },
     },
     {
       id: "chat_2",
       post: mockPosts[1],
-      lastMessage: "Thanks for the quick response!",
-      lastMessageTime: new Date(Date.now() - 1000 * 60 * 60 * 2),
-      unreadCount: 0,
-      otherUserName: "Sarah Wilson",
-      otherUserAvatar: "/placeholder.svg?height=40&width=40",
+      otherUser: mockOtherUsers[1],
+      conversation: {
+        id: "conv_2",
+        participants: [mockOtherUsers[1]],
+        messages: [
+          {
+            id: "msg_2",
+            content: "Thanks for the quick response!",
+            sender: mockOtherUsers[1],
+            isRead: true,
+            createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+            updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+          },
+        ],
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(),
+        updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+      },
     },
     {
       id: "chat_3",
       post: mockPosts[3],
-      lastMessage: "Can we meet tomorrow?",
-      lastMessageTime: new Date(Date.now() - 1000 * 60 * 60 * 24),
-      unreadCount: 1,
-      otherUserName: "Mike Johnson",
-      otherUserAvatar: "/placeholder.svg?height=40&width=40",
+      otherUser: mockOtherUsers[2],
+      conversation: {
+        id: "conv_3",
+        participants: [mockOtherUsers[2]],
+        messages: [
+          {
+            id: "msg_3",
+            content: "Can we meet tomorrow?",
+            sender: mockOtherUsers[2],
+            isRead: false,
+            createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+            updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+          },
+        ],
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
+        updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+      },
     },
   ]
 
   const filteredChats = chats.filter(
     (chat) =>
       chat.post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      chat.otherUserName.toLowerCase().includes(searchQuery.toLowerCase()),
+      chat.otherUser.username.toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
   const handleChatClick = (chat: ChatPreview) => {
-    setSelectedChat(chat.post)
+    setSelectedPost(chat.post)
     setIsChatModalOpen(true)
   }
 
-  const formatTime = (date: Date) => {
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString)
     const now = new Date()
     const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60)
 
@@ -82,6 +160,20 @@ export function ChatList() {
     }
   }
 
+  const getUnreadCount = (conversation: Conversation) => {
+    return conversation.messages.filter((msg) => !msg.isRead && msg.sender.id !== "current_user").length
+  }
+
+  const getUserInitials = (username: string) => {
+    return username
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+  }
+
+  const totalUnread = chats.reduce((total, chat) => total + getUnreadCount(chat.conversation), 0)
+
   return (
     <>
       <Card className="dark:bg-gray-800 dark:border-gray-700">
@@ -89,9 +181,9 @@ export function ChatList() {
           <CardTitle className="flex items-center gap-2 dark:text-white">
             <MessageCircle className="w-5 h-5" />
             Messages
-            {chats.reduce((total, chat) => total + chat.unreadCount, 0) > 0 && (
+            {totalUnread > 0 && (
               <Badge variant="destructive" className="ml-auto">
-                {chats.reduce((total, chat) => total + chat.unreadCount, 0)}
+                {totalUnread}
               </Badge>
             )}
           </CardTitle>
@@ -106,74 +198,72 @@ export function ChatList() {
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          {filteredChats.length === 0 ? (
-            <div className="p-6 text-center text-gray-500 dark:text-gray-400">
-              <MessageCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>No conversations found</p>
-            </div>
-          ) : (
-            <div className="space-y-0">
-              {filteredChats.map((chat) => (
-                <div
-                  key={chat.id}
-                  className="flex items-center gap-3 p-4 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b dark:border-gray-700 last:border-b-0"
-                  onClick={() => handleChatClick(chat)}
-                >
-                  <Avatar className="h-12 w-12">
-                    <AvatarImage src={chat.otherUserAvatar || "/placeholder.svg"} />
-                    <AvatarFallback className="bg-blue-600 text-white">{chat.otherUserName.charAt(0)}</AvatarFallback>
-                  </Avatar>
+          {filteredChats.length > 0 ? (
+            <div className="divide-y dark:divide-gray-700">
+              {filteredChats.map((chat) => {
+                const lastMessage = chat.conversation.messages[chat.conversation.messages.length - 1]
+                const unreadCount = getUnreadCount(chat.conversation)
 
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <h3 className="font-medium text-sm dark:text-white truncate">{chat.otherUserName}</h3>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
-                          {formatTime(chat.lastMessageTime)}
-                        </span>
-                        {chat.unreadCount > 0 && (
-                          <Badge variant="destructive" className="text-xs h-5 min-w-5 px-1">
-                            {chat.unreadCount}
-                          </Badge>
+                return (
+                  <div
+                    key={chat.id}
+                    className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
+                    onClick={() => handleChatClick(chat)}
+                  >
+                    <div className="flex items-start gap-3">
+                      <Avatar className="h-12 w-12">
+                        <AvatarImage src="/placeholder.svg?height=48&width=48" />
+                        <AvatarFallback className="bg-blue-600 text-white">
+                          {getUserInitials(chat.otherUser.username)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <h3 className="font-medium text-sm dark:text-white truncate">{chat.otherUser.username}</h3>
+                          <div className="flex items-center gap-2">
+                            {lastMessage && (
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
+                                {formatTime(lastMessage.createdAt)}
+                              </span>
+                            )}
+                            {unreadCount > 0 && (
+                              <Badge variant="destructive" className="text-xs h-5 min-w-5 px-1">
+                                {unreadCount}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 truncate mb-1">
+                          About: {chat.post.title}
+                        </p>
+                        {lastMessage && (
+                          <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                            {lastMessage.sender.id === "current_user" ? "You: " : ""}
+                            {lastMessage.content}
+                          </p>
                         )}
                       </div>
                     </div>
-
-                    <p className="text-sm text-gray-600 dark:text-gray-300 truncate mb-1">{chat.lastMessage}</p>
-
-                    <div className="flex items-center gap-2">
-                      {chat.post.images[0]?.imageBase64 ? (
-                        <img
-                          src={`data:image/jpeg;base64,${chat.post.images[0].imageBase64}`}
-                          alt={chat.post.title}
-                          className="w-6 h-6 object-cover rounded"
-                        />
-                      ) : (
-                        <img
-                          src="/placeholder.svg?height=24&width=24"
-                          alt={chat.post.title}
-                          className="w-6 h-6 object-cover rounded"
-                        />
-                      )}
-                      <span className="text-xs text-gray-500 dark:text-gray-400 truncate">{chat.post.title}</span>
-                      <span className="text-xs font-semibold text-green-600 dark:text-green-400">
-                        ${chat.post.price.toLocaleString()}
-                      </span>
-                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
+            </div>
+          ) : (
+            <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+              <MessageCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p>No conversations found</p>
+              {searchQuery && <p className="text-sm mt-2">Try adjusting your search terms</p>}
             </div>
           )}
         </CardContent>
       </Card>
 
       <ChatModal
-        post={selectedChat}
+        post={selectedPost}
         isOpen={isChatModalOpen}
         onClose={() => {
           setIsChatModalOpen(false)
-          setSelectedChat(null)
+          setSelectedPost(null)
         }}
       />
     </>

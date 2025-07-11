@@ -40,7 +40,7 @@ http.interceptors.response.use(
     if (error.response) {
       const { status } = error.response;
       if (status === 401) {
-        window.location.href = "/"
+        // window.location.href = "/"
       } else if (status === 500) {
         showNotification.error("Unexpected error has been occurred", "Please try again")
       }

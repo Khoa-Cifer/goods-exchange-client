@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Heart, MessageCircle, MapPin, Calendar, Tag, Eye, Flag, MoreVertical } from "lucide-react"
 import { useState } from "react"
-import type { Post } from "@/types/post"
+import { Post } from "@/types/post"
 import { PostDetailModal } from "@/components/post-detail-modal"
 import { showNotification } from "@/components/notification-helper"
 import { ChatButton } from "@/components/chat-button"
@@ -64,10 +64,8 @@ export function PostCard({ post, showLoginPrompt = false }: PostCardProps) {
     }
   }
 
-  const handleInteraction = (e: React.MouseEvent, action: string) => {
+  const handleInteraction = () => {
     if (showLoginPrompt) {
-      e.preventDefault()
-      e.stopPropagation()
       showNotification.warning("Sign In Required", "Please sign in to continue with this action.")
       setTimeout(() => {
         window.location.href = "/login"
@@ -109,7 +107,7 @@ export function PostCard({ post, showLoginPrompt = false }: PostCardProps) {
         <CardHeader className="p-0 relative">
           {primaryImage?.imageBase64 ? (
             <img
-              src={`data:image/jpeg;base64,${primaryImage.imageBase64}`}
+              src={post.images[0].imageBase64}
               alt={post.title}
               className="w-full h-48 object-cover rounded-t-lg"
             />
@@ -123,18 +121,6 @@ export function PostCard({ post, showLoginPrompt = false }: PostCardProps) {
 
           {/* Action Buttons */}
           <div className="absolute top-2 right-2 flex gap-1">
-            <Button
-              size="sm"
-              variant="secondary"
-              className="p-2"
-              onClick={(e) => {
-                e.stopPropagation()
-                handleInteraction(e, "favorite")
-              }}
-            >
-              <Heart className="w-4 h-4" />
-            </Button>
-
             {/* More Actions Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -212,10 +198,7 @@ export function PostCard({ post, showLoginPrompt = false }: PostCardProps) {
                 variant="outline"
                 size="sm"
                 className="bg-transparent"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handleInteraction(e, "contact")
-                }}
+                onClick={handleInteraction}
                 disabled={post.status !== PostStatus.Confirmed}
               >
                 <MessageCircle className="w-4 h-4" />

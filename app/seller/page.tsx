@@ -109,17 +109,8 @@ export default function SellerDashboard() {
               key={post.id}
               post={post}
               showLoginPrompt={false}
-              onContact={(post) => console.log("Contact seller for:", post.title)}
-              onFavorite={(post) => console.log("Added to favorites:", post.title)}
             />
           ))}
-        </div>
-
-        {/* Load More */}
-        <div className="text-center mt-8">
-          <Button variant="outline" size="lg" className="bg-transparent">
-            Load More Items
-          </Button>
         </div>
       </div>
     </div>

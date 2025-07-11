@@ -10,9 +10,9 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Send, Phone, Video, MoreVertical, ImageIcon, Paperclip, Smile } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
-import type { Post } from "@/types/post"
-import { Message } from "@/enum/message"
-import { getConversationHistory, sendMessage } from "@/axios/message"
+import { Post } from "@/types/post"
+import { User } from "@/types/user"
+import { Message } from "@/types/message"
 
 interface ChatModalProps {
   post: Post | null
@@ -28,15 +28,69 @@ export function ChatModal({ post, isOpen, onClose, currentUserId = "current_user
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const getConversation = async (userId: string) => {
-    const response = await getConversationHistory(userId);
-    setMessages(response)
+  // Mock users for the chat
+  const currentUser: User = {
+    id: currentUserId,
+    username: "You",
+    email: "current.user@example.com",
+    provider: "google",
+    googleId: "google_current_user",
+    isActive: 1,
+    userRoles: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    messages: [],
+    conversations: [],
+  }
+
+  const sellerUser: User = {
+    id: post?.userId || "seller_user",
+    username: "Seller",
+    userRoles: [],
+    email: "seller@example.com",
+    provider: "google",
+    googleId: "google_seller",
+    isActive: 1,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    messages: [],
+    conversations: [],
   }
 
   // Mock initial messages
   useEffect(() => {
     if (post && isOpen) {
-      getConversation(post.userId);
+      const initialMessages: Message[] = [
+        {
+          id: "msg_1",
+          content: `Chat started about "${post.title}"`,
+          sender: {
+            id: "system",
+            username: "System",
+            email: "system@example.com",
+            provider: "system",
+            googleId: "",
+            userRoles: [],
+            isActive: 1,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            messages: [],
+            conversations: [],
+          },
+          isRead: true,
+          createdAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
+          updatedAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
+        },
+        {
+          id: "msg_2",
+          content: "Hi! Thanks for your interest in this item. Feel free to ask any questions!",
+          sender: sellerUser,
+          isRead: true,
+          createdAt: new Date(Date.now() - 1000 * 60 * 3).toISOString(),
+          updatedAt: new Date(Date.now() - 1000 * 60 * 3).toISOString(),
+        },
+      ]
+      setMessages(initialMessages)
     }
   }, [post, isOpen])
 
@@ -50,13 +104,19 @@ export function ChatModal({ post, isOpen, onClose, currentUserId = "current_user
     if (isOpen) {
       setTimeout(() => inputRef.current?.focus(), 100)
     }
-  }, [isOpen]);
+  }, [isOpen])
 
-  const handleSendMessage = async () => {
+  const handleSendMessage = () => {
     if (!newMessage.trim() || !post) return
 
-    const response = await sendMessage(post.userId, newMessage.trim());
-    const message = response;
+    const message: Message = {
+      id: `msg_${Date.now()}`,
+      content: newMessage.trim(),
+      sender: currentUser,
+      isRead: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
 
     setMessages((prev) => [...prev, message])
     setNewMessage("")
@@ -75,12 +135,11 @@ export function ChatModal({ post, isOpen, onClose, currentUserId = "current_user
 
         const response: Message = {
           id: `msg_${Date.now()}_response`,
-          senderId: post.userId,
-          senderName: "Seller",
           content: responses[Math.floor(Math.random() * responses.length)],
-          timestamp: new Date(),
-          type: "text",
+          sender: sellerUser,
           isRead: false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         }
 
         setMessages((prev) => [...prev, response])
@@ -96,11 +155,13 @@ export function ChatModal({ post, isOpen, onClose, currentUserId = "current_user
     }
   }
 
-  const formatTime = (date: Date) => {
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString)
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
   }
 
-  const formatDate = (date: Date) => {
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
     const today = new Date()
     const yesterday = new Date(today)
     yesterday.setDate(yesterday.getDate() - 1)
@@ -114,6 +175,14 @@ export function ChatModal({ post, isOpen, onClose, currentUserId = "current_user
     }
   }
 
+  const getUserInitials = (username: string) => {
+    return username
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+  }
+
   if (!post) return null
 
   return (
@@ -125,21 +194,70 @@ export function ChatModal({ post, isOpen, onClose, currentUserId = "current_user
             <div className="flex items-center gap-3">
               <Avatar className="h-10 w-10">
                 <AvatarImage src="/placeholder.svg?height=40&width=40" />
-                <AvatarFallback className="bg-blue-600 text-white">S</AvatarFallback>
+                <AvatarFallback className="bg-blue-600 text-white">
+                  {getUserInitials(sellerUser.username)}
+                </AvatarFallback>
               </Avatar>
               <div>
-                <DialogTitle className="text-lg font-semibold dark:text-white">Chat with Seller</DialogTitle>
+                <DialogTitle className="text-lg font-semibold dark:text-white">
+                  Chat with {sellerUser.username}
+                </DialogTitle>
                 <p className="text-sm text-gray-600 dark:text-gray-300">About: {post.title}</p>
-                <p className="text-sm text-gray-600 dark:text-gray-300">Price: ${post.price.toLocaleString()}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-xs">
+                ${post.price.toLocaleString()}
+              </Badge>
+              <div className="flex gap-1">
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <Phone className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <Video className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
               </div>
             </div>
           </div>
         </DialogHeader>
 
+        {/* Product Info Bar */}
+        <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 border-b dark:border-gray-600">
+          <div className="flex items-center gap-3">
+            {post.images[0]?.imageBase64 ? (
+              <img
+                src={post.images[0].imageBase64}
+                alt={post.title}
+                className="w-12 h-12 object-cover rounded-lg"
+              />
+            ) : (
+              <img
+                src="/placeholder.svg?height=48&width=48"
+                alt={post.title}
+                className="w-12 h-12 object-cover rounded-lg"
+              />
+            )}
+            <div className="flex-1 min-w-0">
+              <h3 className="font-medium text-sm dark:text-white truncate">{post.title}</h3>
+              <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
+                <span className="font-semibold text-green-600 dark:text-green-400">${post.price.toLocaleString()}</span>
+                <span>•</span>
+                <span>{post.campus}</span>
+              </div>
+            </div>
+            <Button variant="outline" size="sm" className="text-xs bg-transparent">
+              View Item
+            </Button>
+          </div>
+        </div>
+
         {/* Messages Area */}
         <ScrollArea className="flex-1 p-4">
           <div className="space-y-4">
-            {messages && messages.map && messages.map((message, index) => {
+            {messages.map((message, index) => {
               const showDate =
                 index === 0 || formatDate(message.createdAt) !== formatDate(messages[index - 1].createdAt)
 
@@ -153,35 +271,38 @@ export function ChatModal({ post, isOpen, onClose, currentUserId = "current_user
                     </div>
                   )}
 
-                  {message.type === "system" ? (
+                  {message.sender.id === "system" ? (
                     <div className="flex justify-center">
                       <div className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
                         {message.content}
                       </div>
                     </div>
                   ) : (
-                    <div className={`flex ${message.senderId === currentUserId ? "justify-end" : "justify-start"}`}>
+                    <div className={`flex ${message.sender.id === currentUserId ? "justify-end" : "justify-start"}`}>
                       <div
-                        className={`flex items-end gap-2 max-w-[70%] ${message.senderId === currentUserId ? "flex-row-reverse" : ""}`}
+                        className={`flex items-end gap-2 max-w-[70%] ${message.sender.id === currentUserId ? "flex-row-reverse" : ""
+                          }`}
                       >
-                        {message.senderId !== currentUserId && (
+                        {message.sender.id !== currentUserId && (
                           <Avatar className="h-6 w-6">
                             <AvatarImage src="/placeholder.svg?height=24&width=24" />
-                            <AvatarFallback className="bg-blue-600 text-white text-xs">S</AvatarFallback>
+                            <AvatarFallback className="bg-blue-600 text-white text-xs">
+                              {getUserInitials(message.sender.username)}
+                            </AvatarFallback>
                           </Avatar>
                         )}
                         <div
-                          className={`rounded-2xl px-4 py-2 ${message.senderId === currentUserId
-                            ? "bg-blue-600 text-white"
-                            : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                          className={`rounded-2xl px-4 py-2 ${message.sender.id === currentUserId
+                              ? "bg-blue-600 text-white"
+                              : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
                             }`}
                         >
                           <p className="text-sm">{message.content}</p>
                           <p
-                            className={`text-xs mt-1 ${message.senderId === currentUserId ? "text-blue-100" : "text-gray-500 dark:text-gray-400"
+                            className={`text-xs mt-1 ${message.sender.id === currentUserId ? "text-blue-100" : "text-gray-500 dark:text-gray-400"
                               }`}
                           >
-                            {formatTime(message.timestamp)}
+                            {formatTime(message.createdAt)}
                           </p>
                         </div>
                       </div>
@@ -197,7 +318,9 @@ export function ChatModal({ post, isOpen, onClose, currentUserId = "current_user
                 <div className="flex items-end gap-2 max-w-[70%]">
                   <Avatar className="h-6 w-6">
                     <AvatarImage src="/placeholder.svg?height=24&width=24" />
-                    <AvatarFallback className="bg-blue-600 text-white text-xs">S</AvatarFallback>
+                    <AvatarFallback className="bg-blue-600 text-white text-xs">
+                      {getUserInitials(sellerUser.username)}
+                    </AvatarFallback>
                   </Avatar>
                   <div className="bg-gray-100 dark:bg-gray-700 rounded-2xl px-4 py-2">
                     <div className="flex space-x-1">
@@ -223,6 +346,12 @@ export function ChatModal({ post, isOpen, onClose, currentUserId = "current_user
         {/* Message Input */}
         <div className="p-4 border-t dark:border-gray-700 bg-white dark:bg-gray-800">
           <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-500 dark:text-gray-400">
+              <Paperclip className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-500 dark:text-gray-400">
+              <ImageIcon className="h-4 w-4" />
+            </Button>
             <div className="flex-1 relative">
               <Input
                 ref={inputRef}
@@ -232,6 +361,13 @@ export function ChatModal({ post, isOpen, onClose, currentUserId = "current_user
                 placeholder="Type a message..."
                 className="pr-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               />
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 text-gray-500 dark:text-gray-400"
+              >
+                <Smile className="h-4 w-4" />
+              </Button>
             </div>
             <Button
               onClick={handleSendMessage}
@@ -243,7 +379,8 @@ export function ChatModal({ post, isOpen, onClose, currentUserId = "current_user
             </Button>
           </div>
           <div className="flex justify-between items-center mt-2 text-xs text-gray-500 dark:text-gray-400">
-            <span>Press Enter to send</span>
+            <span>Press Enter to send, Shift+Enter for new line</span>
+            <span>Online</span>
           </div>
         </div>
       </DialogContent>

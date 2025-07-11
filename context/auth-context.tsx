@@ -14,6 +14,8 @@ interface AuthContextType {
     authenticatedUser: UserTokenData | null;
     accessToken: string | null;
     allRequestTypes: RequestType[];
+    currentRoleUsing: string | null;
+    setCurrentRoleUsing: any;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,6 +24,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [accessTokenState, setAccessTokenState] = useState<string | null>(null);
     const [currentUser, setCurrentUser] = useState<UserTokenData | null>(null);
     const [requestTypes, setRequestTypes] = useState<RequestType[]>([]);
+    const [currentRole, setCurrentRole] = useState<string | null>(null);
+
     const router = useRouter();
 
     useEffect(() => {
@@ -30,9 +34,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setAccessTokenState(token);
             const user = jwtDecode<UserTokenData>(token);
             setCurrentUser(user);
+            getAllCurrentRequestTypes();
         }
 
-        getAllCurrentRequestTypes();
     }, [accessTokenState]);
 
     const getAllCurrentRequestTypes = async () => {
@@ -72,7 +76,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 login, logout,
                 authenticatedUser: currentUser,
                 accessToken: accessTokenState,
-                allRequestTypes: requestTypes
+                allRequestTypes: requestTypes,
+                currentRoleUsing: currentRole,
+                setCurrentRoleUsing: setCurrentRole,
             }}>
             {children}
         </AuthContext.Provider>

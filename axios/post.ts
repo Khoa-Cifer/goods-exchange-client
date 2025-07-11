@@ -6,11 +6,6 @@ export async function createPost(data: CreatePostRequest) {
   return response.data;
 }
 
-export async function getAllPosts() {
-  const response = await http.get('/posts/all-posts');
-  return response.data.result;
-}
-
 export async function confirmPost(postId: string) {
   const response = await http.put(`/posts/confirm-post/${postId}`);
   return response.data;
