@@ -49,7 +49,6 @@ export function ChatWidget() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  console.log(currentUser);
   // Memoize active conversation and messages to prevent unnecessary recalculations
   const activeConv = useMemo(
     () => conversations.find((c) => c.id === activeConversation),

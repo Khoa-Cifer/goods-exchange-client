@@ -8,6 +8,7 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import { Toaster } from "@/components/toaster"
 import { ChatWidget } from "@/components/chat-widget"
 import { ChatProvider } from "@/context/chat-context"
+import { MessageListener } from "@/components/message-listener"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -32,6 +33,7 @@ export default function RootLayout({
                 {children}
                 <Toaster />
                 <ChatWidget />
+                <MessageListener />
               </AuthProvider>
             </ChatProvider>
           </GoogleOAuthProvider>

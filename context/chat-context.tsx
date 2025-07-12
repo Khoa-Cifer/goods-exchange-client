@@ -1,7 +1,7 @@
 "use client"
 
 import { getConversationHistory, sendMessageApi } from "@/axios/chat"
-import { Conversation } from "@/types/chat"
+import { Conversation, Message } from "@/types/chat"
 import { User } from "@/types/user"
 import type React from "react"
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react"
@@ -19,6 +19,7 @@ interface ChatContextType {
   closeGlobalChat: () => void
   setActiveConversation: (conversationId: string | null) => void
   sendMessage: (conversationId: string, content: string) => Promise<void>
+  receiveMessage: (conversationId: string, message: Message) => void
   markAsRead: (conversationId: string) => Promise<void>
   startConversation: (userId: string) => Promise<string>
   searchUsers: (query: string) => Promise<User[]>
@@ -69,6 +70,27 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     setIsGlobalChatOpen(false)
     setActiveConversation(null)
   }, [])
+
+  const receiveMessage = (conversationId: string, message: Message) => {
+    try {
+      if (message.sender.id === currentUser?.id) {
+        return;
+      }
+      setConversations((prev) =>
+        prev.map((conv) =>
+          conv.id === conversationId
+            ? {
+              ...conv,
+              messages: [...conv.messages ?? [], message],
+              updatedAt: new Date().toISOString(),
+            }
+            : conv,
+        ),
+      )
+    } catch (error) {
+      console.error("Error receive message:", error)
+    }
+  }
 
   const sendMessage = useCallback(
     async (conversationId: string, content: string) => {
@@ -209,6 +231,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       closeGlobalChat,
       setActiveConversation,
       sendMessage,
+      receiveMessage,
       markAsRead,
       startConversation,
       searchUsers,
@@ -226,6 +249,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       openGlobalChat,
       closeGlobalChat,
       sendMessage,
+      receiveMessage,
       markAsRead,
       startConversation,
       searchUsers,
