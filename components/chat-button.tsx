@@ -26,10 +26,10 @@ export function ChatButton({
 }: ChatButtonProps) {
     const { openGlobalChat, getOrCreateConversation, setActiveConversation } = useChat()
 
-    const handleClick = () => {
+    const handleClick = async () => {
         if (userId) {
             // Start conversation with specific user
-            const conversationId = getOrCreateConversation(userId)
+            const conversationId = await getOrCreateConversation(userId)
             setActiveConversation(conversationId)
             openGlobalChat()
             showNotification.success("Chat Started", `Starting conversation${userName ? ` with ${userName}` : ""}`)

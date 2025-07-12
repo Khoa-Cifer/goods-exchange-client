@@ -9,9 +9,16 @@ export type Message = {
     updatedAt: string;
 }
 
+export type Participant = {
+    id: string;
+    createdAt: string;
+    updatedAt: string;
+    user: User;
+}
+
 export type Conversation = {
     id: string;
-    participants: User[];
+    participants: Participant[];
     messages: Message[];
     createdAt: string;
     updatedAt: string;

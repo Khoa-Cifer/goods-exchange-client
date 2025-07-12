@@ -16,11 +16,11 @@ export type User = {
     provider: string;
     googleId: string;
     isActive: number;
-    userRoles: UserRole[];
+    userRoles?: UserRole[];
     createdAt: string;
     updatedAt: string;
-    messages: Message[];
-    conversations: Conversation[];
+    messages?: Message[];
+    conversations?: Conversation[];
 };
 
 export type Role = {

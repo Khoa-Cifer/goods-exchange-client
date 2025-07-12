@@ -25,6 +25,7 @@ import {
   Smile,
   Paperclip,
   ImageIcon,
+  Loader2,
 } from "lucide-react"
 import { useChat } from "@/context/chat-context"
 import { User } from "@/types/user"
@@ -36,6 +37,7 @@ export function ChatWidget() {
     isGlobalChatOpen,
     unreadTotal,
     currentUser,
+    loading,
     openGlobalChat,
     closeGlobalChat,
     setActiveConversation,
@@ -50,6 +52,8 @@ export function ChatWidget() {
   const [searchQuery, setSearchQuery] = useState("")
   const [showUserSearch, setShowUserSearch] = useState(false)
   const [searchResults, setSearchResults] = useState<User[]>([])
+  const [searchLoading, setSearchLoading] = useState(false)
+  const [sendingMessage, setSendingMessage] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -62,7 +66,7 @@ export function ChatWidget() {
   const activeMessages = useMemo(() => activeConv?.messages || [], [activeConv])
 
   const otherParticipant = useMemo(
-    () => activeConv?.participants.find((p) => p.id !== currentUser?.id),
+    () => activeConv?.participants.find((p) => p.user.id !== currentUser?.id)?.user,
     [activeConv, currentUser?.id],
   )
 
@@ -92,20 +96,35 @@ export function ChatWidget() {
   useEffect(() => {
     if (!showUserSearch) return
 
-    const timer = setTimeout(() => {
-      const results = searchUsers(searchQuery)
-      setSearchResults(results)
+    const timer = setTimeout(async () => {
+      setSearchLoading(true)
+      try {
+        const results = await searchUsers(searchQuery)
+        setSearchResults(results)
+      } catch (error) {
+        console.error("Error searching users:", error)
+        setSearchResults([])
+      } finally {
+        setSearchLoading(false)
+      }
     }, 300)
 
     return () => clearTimeout(timer)
   }, [searchQuery, searchUsers, showUserSearch])
 
-  const handleSendMessage = useCallback(() => {
-    if (!newMessage.trim() || !activeConversation) return
+  const handleSendMessage = useCallback(async () => {
+    if (!newMessage.trim() || !activeConversation || sendingMessage) return
 
-    sendMessage(activeConversation, newMessage.trim())
-    setNewMessage("")
-  }, [newMessage, activeConversation, sendMessage])
+    setSendingMessage(true)
+    try {
+      await sendMessage(activeConversation, newMessage.trim())
+      setNewMessage("")
+    } catch (error) {
+      console.error("Error sending message:", error)
+    } finally {
+      setSendingMessage(false)
+    }
+  }, [newMessage, activeConversation, sendMessage, sendingMessage])
 
   const handleKeyPress = useCallback(
     (e: React.KeyboardEvent) => {
@@ -127,12 +146,16 @@ export function ChatWidget() {
   )
 
   const handleUserClick = useCallback(
-    (user: User) => {
-      const conversationId = getOrCreateConversation(user.id)
-      setActiveConversation(conversationId)
-      setShowUserSearch(false)
-      setSearchQuery("")
-      setSearchResults([])
+    async (user: User) => {
+      try {
+        const conversationId = await getOrCreateConversation(user.id)
+        setActiveConversation(conversationId)
+        setShowUserSearch(false)
+        setSearchQuery("")
+        setSearchResults([])
+      } catch (error) {
+        console.error("Error creating conversation:", error)
+      }
     },
     [getOrCreateConversation, setActiveConversation],
   )
@@ -219,9 +242,8 @@ export function ChatWidget() {
               {activeConversation && otherParticipant && (
                 <div className="flex items-center gap-1">
                   <div
-                    className={`w-2 h-2 rounded-full ${
-                      isUserOnline(otherParticipant) ? "bg-green-500" : "bg-gray-400"
-                    }`}
+                    className={`w-2 h-2 rounded-full ${isUserOnline(otherParticipant) ? "bg-green-500" : "bg-gray-400"
+                      }`}
                   />
                   <span className="text-xs text-gray-500 dark:text-gray-400">
                     {isUserOnline(otherParticipant) ? "Online" : formatLastSeen(otherParticipant.updatedAt)}
@@ -230,22 +252,6 @@ export function ChatWidget() {
               )}
             </div>
             <div className="flex items-center gap-1">
-              {activeConversation && (
-                <>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                    <Phone className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                    <Video className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
-                </>
-              )}
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setIsMinimized(!isMinimized)}>
-                {isMinimized ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
-              </Button>
               <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={closeGlobalChat}>
                 <X className="h-4 w-4" />
               </Button>
@@ -267,11 +273,19 @@ export function ChatWidget() {
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                     />
+                    {searchLoading && (
+                      <Loader2 className="absolute right-3 top-3 w-4 h-4 animate-spin text-gray-400 dark:text-gray-500" />
+                    )}
                   </div>
                 </div>
                 <ScrollArea className="flex-1">
                   <div className="p-2">
-                    {searchResults.length > 0 ? (
+                    {searchLoading ? (
+                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                        <Loader2 className="w-8 h-8 mx-auto mb-4 animate-spin" />
+                        <p>Searching users...</p>
+                      </div>
+                    ) : searchResults.length > 0 ? (
                       searchResults.map((user) => (
                         <div
                           key={user.id}
@@ -289,9 +303,8 @@ export function ChatWidget() {
                             <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
                             <div className="flex items-center gap-1">
                               <div
-                                className={`w-2 h-2 rounded-full ${
-                                  isUserOnline(user) ? "bg-green-500" : "bg-gray-400"
-                                }`}
+                                className={`w-2 h-2 rounded-full ${isUserOnline(user) ? "bg-green-500" : "bg-gray-400"
+                                  }`}
                               />
                               <span className="text-xs text-gray-500 dark:text-gray-400">
                                 {isUserOnline(user) ? "Online" : formatLastSeen(user.updatedAt)}
@@ -326,9 +339,8 @@ export function ChatWidget() {
                         className={`flex ${message.sender.id === currentUser?.id ? "justify-end" : "justify-start"}`}
                       >
                         <div
-                          className={`flex items-end gap-2 max-w-[80%] ${
-                            message.sender.id === currentUser?.id ? "flex-row-reverse" : ""
-                          }`}
+                          className={`flex items-end gap-2 max-w-[80%] ${message.sender.id === currentUser?.id ? "flex-row-reverse" : ""
+                            }`}
                         >
                           {message.sender.id !== currentUser?.id && (
                             <Avatar className="h-6 w-6">
@@ -339,19 +351,17 @@ export function ChatWidget() {
                             </Avatar>
                           )}
                           <div
-                            className={`rounded-2xl px-4 py-2 ${
-                              message.sender.id === currentUser?.id
+                            className={`rounded-2xl px-4 py-2 ${message.sender.id === currentUser?.id
                                 ? "bg-blue-600 text-white"
                                 : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
-                            }`}
+                              }`}
                           >
                             <p className="text-sm">{message.content}</p>
                             <p
-                              className={`text-xs mt-1 ${
-                                message.sender.id === currentUser?.id
+                              className={`text-xs mt-1 ${message.sender.id === currentUser?.id
                                   ? "text-blue-100"
                                   : "text-gray-500 dark:text-gray-400"
-                              }`}
+                                }`}
                             >
                               {formatTime(message.createdAt)}
                             </p>
@@ -379,6 +389,7 @@ export function ChatWidget() {
                         onChange={(e) => setNewMessage(e.target.value)}
                         onKeyPress={handleKeyPress}
                         placeholder="Type a message..."
+                        disabled={sendingMessage}
                         className="pr-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                       />
                       <Button
@@ -391,11 +402,11 @@ export function ChatWidget() {
                     </div>
                     <Button
                       onClick={handleSendMessage}
-                      disabled={!newMessage.trim()}
+                      disabled={!newMessage.trim() || sendingMessage}
                       size="sm"
                       className="h-8 w-8 p-0 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600"
                     >
-                      <Send className="h-4 w-4" />
+                      {sendingMessage ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                     </Button>
                   </div>
                 </div>
@@ -413,10 +424,15 @@ export function ChatWidget() {
                   </Button>
                 </div>
                 <ScrollArea className="flex-1">
-                  {conversations.length > 0 ? (
+                  {loading ? (
+                    <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400">
+                      <Loader2 className="w-8 h-8 mb-4 animate-spin" />
+                      <p>Loading conversations...</p>
+                    </div>
+                  ) : conversations.length > 0 ? (
                     <div className="p-2">
                       {conversations.map((conversation) => {
-                        const otherUser = conversation.participants.find((p) => p.id !== currentUser?.id)
+                        const otherUser = conversation.participants.find((p) => p.user.id !== currentUser?.id)?.user
                         const lastMessage = conversation.messages[conversation.messages.length - 1]
                         const unreadCount = getUnreadCount(conversation)
 
@@ -458,9 +474,8 @@ export function ChatWidget() {
                               )}
                               <div className="flex items-center gap-1 mt-1">
                                 <div
-                                  className={`w-2 h-2 rounded-full ${
-                                    otherUser && isUserOnline(otherUser) ? "bg-green-500" : "bg-gray-400"
-                                  }`}
+                                  className={`w-2 h-2 rounded-full ${otherUser && isUserOnline(otherUser) ? "bg-green-500" : "bg-gray-400"
+                                    }`}
                                 />
                                 <span className="text-xs text-gray-500 dark:text-gray-400">
                                   {otherUser && isUserOnline(otherUser)

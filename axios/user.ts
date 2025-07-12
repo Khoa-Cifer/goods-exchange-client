@@ -5,6 +5,11 @@ export async function getRequestTypes() {
   return response.data.result;
 }
 
+export async function getUserById(userId: string) {
+  const response = await http.get(`/users/selected-user/${userId}`);
+  return response.data.result;
+}
+
 export async function submitRequest(requestTypeId: string, requestDescription: string) {
   const response = await http.post("/users/request", {
     requestTypeId: requestTypeId,

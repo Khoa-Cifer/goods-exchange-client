@@ -8,11 +8,11 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Send, Phone, Video, MoreVertical, ImageIcon, Paperclip, Smile } from "lucide-react"
+import { Send, Phone, Video, MoreVertical, ImageIcon, Paperclip, Smile, Loader2 } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
 import { Post } from "@/types/post"
-import { User } from "@/types/user"
 import { Message } from "@/types/message"
+import { User } from "@/types/user"
 
 interface ChatModalProps {
   post: Post | null
@@ -25,6 +25,7 @@ export function ChatModal({ post, isOpen, onClose, currentUserId = "current_user
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState("")
   const [isTyping, setIsTyping] = useState(false)
+  const [sendingMessage, setSendingMessage] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -36,25 +37,19 @@ export function ChatModal({ post, isOpen, onClose, currentUserId = "current_user
     provider: "google",
     googleId: "google_current_user",
     isActive: 1,
-    userRoles: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    messages: [],
-    conversations: [],
   }
 
   const sellerUser: User = {
     id: post?.userId || "seller_user",
     username: "Seller",
-    userRoles: [],
     email: "seller@example.com",
     provider: "google",
     googleId: "google_seller",
     isActive: 1,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    messages: [],
-    conversations: [],
   }
 
   // Mock initial messages
@@ -70,12 +65,9 @@ export function ChatModal({ post, isOpen, onClose, currentUserId = "current_user
             email: "system@example.com",
             provider: "system",
             googleId: "",
-            userRoles: [],
             isActive: 1,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
-            messages: [],
-            conversations: [],
           },
           isRead: true,
           createdAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
@@ -106,8 +98,10 @@ export function ChatModal({ post, isOpen, onClose, currentUserId = "current_user
     }
   }, [isOpen])
 
-  const handleSendMessage = () => {
-    if (!newMessage.trim() || !post) return
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !post || sendingMessage) return
+
+    setSendingMessage(true)
 
     const message: Message = {
       id: `msg_${Date.now()}`,
@@ -120,6 +114,10 @@ export function ChatModal({ post, isOpen, onClose, currentUserId = "current_user
 
     setMessages((prev) => [...prev, message])
     setNewMessage("")
+
+    // Simulate API call delay
+    await new Promise((resolve) => setTimeout(resolve, 500))
+    setSendingMessage(false)
 
     // Simulate seller typing and response
     setTimeout(() => {
@@ -229,7 +227,7 @@ export function ChatModal({ post, isOpen, onClose, currentUserId = "current_user
           <div className="flex items-center gap-3">
             {post.images[0]?.imageBase64 ? (
               <img
-                src={post.images[0].imageBase64}
+                src={`data:image/jpeg;base64,${post.images[0].imageBase64}`}
                 alt={post.title}
                 className="w-12 h-12 object-cover rounded-lg"
               />
@@ -280,8 +278,9 @@ export function ChatModal({ post, isOpen, onClose, currentUserId = "current_user
                   ) : (
                     <div className={`flex ${message.sender.id === currentUserId ? "justify-end" : "justify-start"}`}>
                       <div
-                        className={`flex items-end gap-2 max-w-[70%] ${message.sender.id === currentUserId ? "flex-row-reverse" : ""
-                          }`}
+                        className={`flex items-end gap-2 max-w-[70%] ${
+                          message.sender.id === currentUserId ? "flex-row-reverse" : ""
+                        }`}
                       >
                         {message.sender.id !== currentUserId && (
                           <Avatar className="h-6 w-6">
@@ -292,15 +291,17 @@ export function ChatModal({ post, isOpen, onClose, currentUserId = "current_user
                           </Avatar>
                         )}
                         <div
-                          className={`rounded-2xl px-4 py-2 ${message.sender.id === currentUserId
+                          className={`rounded-2xl px-4 py-2 ${
+                            message.sender.id === currentUserId
                               ? "bg-blue-600 text-white"
                               : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
-                            }`}
+                          }`}
                         >
                           <p className="text-sm">{message.content}</p>
                           <p
-                            className={`text-xs mt-1 ${message.sender.id === currentUserId ? "text-blue-100" : "text-gray-500 dark:text-gray-400"
-                              }`}
+                            className={`text-xs mt-1 ${
+                              message.sender.id === currentUserId ? "text-blue-100" : "text-gray-500 dark:text-gray-400"
+                            }`}
                           >
                             {formatTime(message.createdAt)}
                           </p>
@@ -359,6 +360,7 @@ export function ChatModal({ post, isOpen, onClose, currentUserId = "current_user
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Type a message..."
+                disabled={sendingMessage}
                 className="pr-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               />
               <Button
@@ -371,11 +373,11 @@ export function ChatModal({ post, isOpen, onClose, currentUserId = "current_user
             </div>
             <Button
               onClick={handleSendMessage}
-              disabled={!newMessage.trim()}
+              disabled={!newMessage.trim() || sendingMessage}
               size="sm"
               className="h-8 w-8 p-0 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600"
             >
-              <Send className="h-4 w-4" />
+              {sendingMessage ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             </Button>
           </div>
           <div className="flex justify-between items-center mt-2 text-xs text-gray-500 dark:text-gray-400">

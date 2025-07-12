@@ -3,14 +3,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { MessageCircle, Search } from "lucide-react"
+import { MessageCircle, Search, Loader2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ChatModal } from "@/components/chat-modal"
 import { mockPosts } from "@/data/mock-posts"
+import { Conversation, Participant } from "@/types/message"
 import { Post } from "@/types/post"
 import { User } from "@/types/user"
-import { Conversation } from "@/types/message"
 
 interface ChatPreview {
   id: string
@@ -23,115 +23,50 @@ export function ChatList() {
   const [selectedPost, setSelectedPost] = useState<Post | null>(null)
   const [isChatModalOpen, setIsChatModalOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+  const [chats, setChats] = useState<ChatPreview[]>([])
+  const [loading, setLoading] = useState(true)
 
-  // Mock chat data with new structure
-  const mockOtherUsers: User[] = [
-    {
-      id: "buyer_1",
-      username: "John Buyer",
-      email: "john.buyer@example.com",
-      provider: "google",
-      googleId: "google_buyer_1",
-      isActive: 1,
-      userRoles: [],
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(),
-      updatedAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-      messages: [],
-      conversations: [],
-    },
-    {
-      id: "buyer_2",
-      username: "Sarah Wilson",
-      email: "sarah.wilson@example.com",
-      provider: "google",
-      googleId: "google_buyer_2",
-      isActive: 1,
-      userRoles: [],
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(),
-      updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-      messages: [],
-      conversations: [],
-    },
-    {
-      id: "buyer_3",
-      username: "Mike Johnson",
-      email: "mike.johnson@example.com",
-      provider: "google",
-      googleId: "google_buyer_3",
-      userRoles: [],
-      isActive: 1,
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
-      updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-      messages: [],
-      conversations: [],
-    },
-  ]
+  // Fetch chat conversations from API
+  useEffect(() => {
+    const fetchChats = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch("/api/chat/conversations")
+        const result = await response.json()
 
-  const chats: ChatPreview[] = [
-    {
-      id: "chat_1",
-      post: mockPosts[0],
-      otherUser: mockOtherUsers[0],
-      conversation: {
-        id: "conv_1",
-        participants: [mockOtherUsers[0]],
-        messages: [
-          {
-            id: "msg_1",
-            content: "Is this still available?",
-            sender: mockOtherUsers[0],
-            isRead: false,
-            createdAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-            updatedAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-          },
-        ],
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-        updatedAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-      },
-    },
-    {
-      id: "chat_2",
-      post: mockPosts[1],
-      otherUser: mockOtherUsers[1],
-      conversation: {
-        id: "conv_2",
-        participants: [mockOtherUsers[1]],
-        messages: [
-          {
-            id: "msg_2",
-            content: "Thanks for the quick response!",
-            sender: mockOtherUsers[1],
-            isRead: true,
-            createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-            updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-          },
-        ],
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(),
-        updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-      },
-    },
-    {
-      id: "chat_3",
-      post: mockPosts[3],
-      otherUser: mockOtherUsers[2],
-      conversation: {
-        id: "conv_3",
-        participants: [mockOtherUsers[2]],
-        messages: [
-          {
-            id: "msg_3",
-            content: "Can we meet tomorrow?",
-            sender: mockOtherUsers[2],
-            isRead: false,
-            createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-            updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-          },
-        ],
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
-        updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-      },
-    },
-  ]
+        if (result.success) {
+          // Transform conversations into chat previews
+          const chatPreviews: ChatPreview[] = result.data.map((conv: Conversation, index: number) => {
+            const otherParticipant = conv.participants.find((p: Participant) => p.user.id !== "current_user")
+            return {
+              id: `chat_${conv.id}`,
+              post: mockPosts[index % mockPosts.length], // Mock association with posts
+              conversation: conv,
+              otherUser: otherParticipant?.user || {
+                id: "unknown",
+                username: "Unknown User",
+                email: "unknown@example.com",
+                provider: "unknown",
+                googleId: "",
+                isActive: 0,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+              },
+            }
+          })
+          setChats(chatPreviews)
+        } else {
+          console.error("Failed to fetch chats:", result.error)
+        }
+      } catch (error) {
+        console.error("Error fetching chats:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchChats()
+  }, [])
 
   const filteredChats = chats.filter(
     (chat) =>
@@ -198,7 +133,12 @@ export function ChatList() {
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          {filteredChats.length > 0 ? (
+          {loading ? (
+            <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+              <Loader2 className="w-8 h-8 mx-auto mb-4 animate-spin" />
+              <p>Loading conversations...</p>
+            </div>
+          ) : filteredChats.length > 0 ? (
             <div className="divide-y dark:divide-gray-700">
               {filteredChats.map((chat) => {
                 const lastMessage = chat.conversation.messages[chat.conversation.messages.length - 1]
