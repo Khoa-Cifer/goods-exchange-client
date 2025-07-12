@@ -27,13 +27,13 @@ export default function RootLayout({
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}>
-            <AuthProvider>
-              <ChatProvider>
+            <ChatProvider>
+              <AuthProvider>
                 {children}
                 <Toaster />
                 <ChatWidget />
-              </ChatProvider>
-            </AuthProvider>
+              </AuthProvider>
+            </ChatProvider>
           </GoogleOAuthProvider>
         </ThemeProvider>
       </body>

@@ -1,50 +1,15 @@
 'use client';
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Package, Eye, MessageCircle, TrendingUp, Search, Filter } from "lucide-react"
+import { Plus, Search, Filter } from "lucide-react"
 import Link from "next/link"
-import { ThemeToggle } from "@/components/theme-toggle"
 import { useEffect, useState } from "react";
 import { Post } from "@/types/post";
 import { getPostsByUser } from "@/axios/post";
-import { PostStatus } from "@/enum/post-status";
 import { PostCard } from "@/components/post-card";
-import { mockPosts } from "@/data/mock-posts";
 import { Input } from "@/components/ui/input";
 import { categories } from "@/data/mock-categories";
-
-// Mock data for seller's items
-const sellerItems = [
-  {
-    id: 1,
-    title: "Vintage Camera",
-    price: 250,
-    status: "active",
-    views: 45,
-    messages: 3,
-    image: "/placeholder.svg?height=200&width=200",
-  },
-  {
-    id: 2,
-    title: "Gaming Laptop",
-    price: 800,
-    status: "sold",
-    views: 120,
-    messages: 8,
-    image: "/placeholder.svg?height=200&width=200",
-  },
-  {
-    id: 3,
-    title: "Bicycle",
-    price: 150,
-    status: "active",
-    views: 23,
-    messages: 1,
-    image: "/placeholder.svg?height=200&width=200",
-  },
-]
 
 export default function SellerDashboard() {
   const [posts, setPosts] = useState<Post[]>([]);

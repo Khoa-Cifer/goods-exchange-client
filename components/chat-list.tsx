@@ -8,9 +8,9 @@ import { Input } from "@/components/ui/input"
 import { useState, useEffect } from "react"
 import { ChatModal } from "@/components/chat-modal"
 import { mockPosts } from "@/data/mock-posts"
-import { Conversation, Participant } from "@/types/message"
 import { Post } from "@/types/post"
 import { User } from "@/types/user"
+import { Conversation, Participant } from "@/types/chat"
 
 interface ChatPreview {
   id: string
@@ -96,7 +96,9 @@ export function ChatList() {
   }
 
   const getUnreadCount = (conversation: Conversation) => {
-    return conversation.messages.filter((msg) => !msg.isRead && msg.sender.id !== "current_user").length
+    return Array.isArray(conversation.messages)
+      ? conversation.messages.filter((msg) => !msg.isRead && msg.sender.id !== "current_user").length
+      : 0
   }
 
   const getUserInitials = (username: string) => {
@@ -141,7 +143,10 @@ export function ChatList() {
           ) : filteredChats.length > 0 ? (
             <div className="divide-y dark:divide-gray-700">
               {filteredChats.map((chat) => {
-                const lastMessage = chat.conversation.messages[chat.conversation.messages.length - 1]
+                const lastMessage =
+                  Array.isArray(chat.conversation.messages) && chat.conversation.messages.length > 0
+                    ? chat.conversation.messages[chat.conversation.messages.length - 1]
+                    : undefined
                 const unreadCount = getUnreadCount(chat.conversation)
 
                 return (

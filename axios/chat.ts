@@ -12,9 +12,8 @@ export const getConversationHistory = async () => {
     return response.data.result;
 }
 
-export const sendMessage = async (receiverId: string, content: string) => {
-    const response = await http.post('/chat/chat-message', {
-        receiverId: receiverId,
+export const sendMessageApi = async (conversationId: string, content: string) => {
+    const response = await http.post(`/chat/conversations/${conversationId}/message`, {
         content: content
     });
     return response.data.result;

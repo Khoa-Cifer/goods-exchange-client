@@ -1,4 +1,4 @@
-import { Conversation, Message } from "./message";
+import { Conversation, Message } from "./chat";
 
 export type UserRole = {
     id: string;
@@ -13,12 +13,12 @@ export type User = {
     id: string;
     username: string;
     email: string;
-    provider: string;
-    googleId: string;
-    isActive: number;
+    provider?: string;
+    googleId?: string;
+    isActive?: number;
     userRoles?: UserRole[];
-    createdAt: string;
-    updatedAt: string;
+    createdAt?: string;
+    updatedAt?: string;
     messages?: Message[];
     conversations?: Conversation[];
 };

@@ -14,7 +14,7 @@ interface ProtectedLayoutProps {
 }
 
 export default function ProtectedLayout({ children, allowedRole }: ProtectedLayoutProps) {
-    const { accessToken, authenticatedUser, logout, setCurrentRoleUsing } = useAuth();
+    const { accessToken, authenticatedUser, logout } = useAuth();
 
     if (!accessToken || !authenticatedUser) {
         console.warn('ProtectedLayout: No user found, redirecting to login.');
@@ -25,7 +25,7 @@ export default function ProtectedLayout({ children, allowedRole }: ProtectedLayo
     if (!roleArray.includes(allowedRole)) {
         console.warn('ProtectedLayout: Unauthorized access, redirecting to home.');
     }
-    setCurrentRoleUsing(allowedRole);
+
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
             <header className="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700">

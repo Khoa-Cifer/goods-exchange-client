@@ -19,7 +19,7 @@ export type Participant = {
 export type Conversation = {
     id: string;
     participants: Participant[];
-    messages: Message[];
+    messages?: Message[];
     createdAt: string;
     updatedAt: string;
 }

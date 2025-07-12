@@ -1,7 +1,7 @@
 "use client"
 
-import { getConversationHistory } from "@/axios/message"
-import { Conversation } from "@/types/message"
+import { getConversationHistory, sendMessageApi } from "@/axios/chat"
+import { Conversation } from "@/types/chat"
 import { User } from "@/types/user"
 import type React from "react"
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react"
@@ -29,22 +29,11 @@ interface ChatContextType {
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined)
 
-const mockCurrentUser: User = {
-  id: "current_user",
-  username: "You",
-  email: "current.user@example.com",
-  provider: "google",
-  googleId: "google_current_user",
-  isActive: 1,
-  createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 60).toISOString(),
-  updatedAt: new Date().toISOString(),
-}
-
 export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [activeConversation, setActiveConversation] = useState<string | null>(null)
   const [isGlobalChatOpen, setIsGlobalChatOpen] = useState(false)
-  const [currentUser, setCurrentUser] = useState<User | null>(mockCurrentUser)
+  const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(false)
 
   // Fetch conversations from API
@@ -68,7 +57,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   // Memoize unread total to prevent recalculation on every render
   const unreadTotal = useMemo(() => {
     return conversations.reduce((total, conv) => {
-      const unreadCount = conv.messages.filter((msg) => !msg.isRead && msg.sender.id !== currentUser?.id).length
+      const unreadCount = (conv.messages ?? []).filter((msg) => !msg.isRead && msg.sender.id !== currentUser?.id).length
       return total + unreadCount
     }, 0)
   }, [conversations, currentUser?.id])
@@ -86,32 +75,19 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       if (!currentUser) return
 
       try {
-        const response = await fetch(`/api/chat/conversations/${conversationId}/messages`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ content }),
-        })
+        const message = await sendMessageApi(conversationId, content);
 
-        const result = await response.json()
-
-        if (result.success) {
-          // Update local state with new message
-          setConversations((prev) =>
-            prev.map((conv) =>
-              conv.id === conversationId
-                ? {
-                  ...conv,
-                  messages: [...conv.messages, result.data],
-                  updatedAt: new Date().toISOString(),
-                }
-                : conv,
-            ),
-          )
-        } else {
-          console.error("Failed to send message:", result.error)
-        }
+        setConversations((prev) =>
+          prev.map((conv) =>
+            conv.id === conversationId
+              ? {
+                ...conv,
+                messages: [...conv.messages ?? [], message],
+                updatedAt: new Date().toISOString(),
+              }
+              : conv,
+          ),
+        )
       } catch (error) {
         console.error("Error sending message:", error)
       }
@@ -137,7 +113,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
               conv.id === conversationId
                 ? {
                   ...conv,
-                  messages: conv.messages.map((msg) =>
+                  messages: (conv.messages ?? []).map((msg) =>
                     msg.sender.id !== currentUser.id ? { ...msg, isRead: true } : msg,
                   ),
                 }

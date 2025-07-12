@@ -14,17 +14,10 @@ import {
   Send,
   Search,
   X,
-  Minimize2,
-  Maximize2,
-  Phone,
-  Video,
-  MoreVertical,
   ArrowLeft,
   Users,
   Plus,
   Smile,
-  Paperclip,
-  ImageIcon,
   Loader2,
 } from "lucide-react"
 import { useChat } from "@/context/chat-context"
@@ -47,7 +40,6 @@ export function ChatWidget() {
     getOrCreateConversation,
   } = useChat()
 
-  const [isMinimized, setIsMinimized] = useState(false)
   const [newMessage, setNewMessage] = useState("")
   const [searchQuery, setSearchQuery] = useState("")
   const [showUserSearch, setShowUserSearch] = useState(false)
@@ -57,6 +49,7 @@ export function ChatWidget() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
+  console.log(currentUser);
   // Memoize active conversation and messages to prevent unnecessary recalculations
   const activeConv = useMemo(
     () => conversations.find((c) => c.id === activeConversation),
@@ -79,18 +72,18 @@ export function ChatWidget() {
 
   // Focus input when conversation changes
   useEffect(() => {
-    if (activeConversation && !isMinimized && isGlobalChatOpen) {
+    if (activeConversation && isGlobalChatOpen) {
       const timer = setTimeout(() => inputRef.current?.focus(), 100)
       return () => clearTimeout(timer)
     }
-  }, [activeConversation, isMinimized, isGlobalChatOpen])
+  }, [activeConversation, isGlobalChatOpen])
 
   // Mark messages as read when conversation is active
   useEffect(() => {
-    if (activeConversation && isGlobalChatOpen && !isMinimized) {
+    if (activeConversation && isGlobalChatOpen) {
       markAsRead(activeConversation)
     }
-  }, [activeConversation, isGlobalChatOpen, isMinimized, markAsRead])
+  }, [activeConversation, isGlobalChatOpen, markAsRead])
 
   // Handle user search with debouncing
   useEffect(() => {
@@ -192,14 +185,6 @@ export function ChatWidget() {
       .toUpperCase()
   }, [])
 
-  const isUserOnline = useCallback((user: User) => {
-    // Simple logic: user is online if updated within last 5 minutes
-    const lastUpdate = new Date(user.updatedAt)
-    const now = new Date()
-    const diffInMinutes = (now.getTime() - lastUpdate.getTime()) / (1000 * 60)
-    return diffInMinutes < 5
-  }, [])
-
   // Chat toggle button (always visible)
   if (!isGlobalChatOpen) {
     return (
@@ -239,17 +224,6 @@ export function ChatWidget() {
                     ? "New Chat"
                     : "Messages"}
               </CardTitle>
-              {activeConversation && otherParticipant && (
-                <div className="flex items-center gap-1">
-                  <div
-                    className={`w-2 h-2 rounded-full ${isUserOnline(otherParticipant) ? "bg-green-500" : "bg-gray-400"
-                      }`}
-                  />
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
-                    {isUserOnline(otherParticipant) ? "Online" : formatLastSeen(otherParticipant.updatedAt)}
-                  </span>
-                </div>
-              )}
             </div>
             <div className="flex items-center gap-1">
               <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={closeGlobalChat}>
@@ -259,249 +233,219 @@ export function ChatWidget() {
           </div>
         </CardHeader>
 
-        {!isMinimized && (
-          <CardContent className="p-0 flex flex-col h-[calc(600px-80px)]">
-            {/* User Search View */}
-            {showUserSearch ? (
-              <div className="flex flex-col h-full">
-                <div className="p-4 border-b dark:border-gray-700">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400 dark:text-gray-500" />
-                    <Input
-                      placeholder="Search users..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                    />
-                    {searchLoading && (
-                      <Loader2 className="absolute right-3 top-3 w-4 h-4 animate-spin text-gray-400 dark:text-gray-500" />
-                    )}
-                  </div>
+        <CardContent className="p-0 flex flex-col h-[calc(600px-80px)]">
+          {/* User Search View */}
+          {showUserSearch ? (
+            <div className="flex flex-col h-full">
+              <div className="p-4 border-b dark:border-gray-700">
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400 dark:text-gray-500" />
+                  <Input
+                    placeholder="Search users..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  />
+                  {searchLoading && (
+                    <Loader2 className="absolute right-3 top-3 w-4 h-4 animate-spin text-gray-400 dark:text-gray-500" />
+                  )}
                 </div>
-                <ScrollArea className="flex-1">
-                  <div className="p-2">
-                    {searchLoading ? (
-                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                        <Loader2 className="w-8 h-8 mx-auto mb-4 animate-spin" />
-                        <p>Searching users...</p>
-                      </div>
-                    ) : searchResults.length > 0 ? (
-                      searchResults.map((user) => (
-                        <div
-                          key={user.id}
-                          className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer"
-                          onClick={() => handleUserClick(user)}
-                        >
-                          <Avatar className="h-10 w-10">
-                            <AvatarImage src="/placeholder.svg?height=40&width=40" />
-                            <AvatarFallback className="bg-blue-600 text-white">
-                              {getUserInitials(user.username)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1">
-                            <p className="font-medium dark:text-white">{user.username}</p>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
-                            <div className="flex items-center gap-1">
-                              <div
-                                className={`w-2 h-2 rounded-full ${isUserOnline(user) ? "bg-green-500" : "bg-gray-400"
-                                  }`}
-                              />
-                              <span className="text-xs text-gray-500 dark:text-gray-400">
-                                {isUserOnline(user) ? "Online" : formatLastSeen(user.updatedAt)}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    ) : searchQuery.trim() ? (
-                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                        <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                        <p>No users found</p>
-                      </div>
-                    ) : (
-                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                        <Search className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                        <p>Search for users to start a conversation</p>
-                      </div>
-                    )}
-                  </div>
-                </ScrollArea>
               </div>
-            ) : activeConversation ? (
-              /* Chat View */
-              <div className="flex flex-col h-full">
-                {/* Messages */}
-                <ScrollArea className="flex-1 p-4">
-                  <div className="space-y-4">
-                    {activeMessages.map((message) => (
+              <ScrollArea className="flex-1">
+                <div className="p-2">
+                  {searchLoading ? (
+                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                      <Loader2 className="w-8 h-8 mx-auto mb-4 animate-spin" />
+                      <p>Searching users...</p>
+                    </div>
+                  ) : searchResults.length > 0 ? (
+                    searchResults.map((user) => (
                       <div
-                        key={message.id}
-                        className={`flex ${message.sender.id === currentUser?.id ? "justify-end" : "justify-start"}`}
+                        key={user.id}
+                        className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer"
+                        onClick={() => handleUserClick(user)}
                       >
-                        <div
-                          className={`flex items-end gap-2 max-w-[80%] ${message.sender.id === currentUser?.id ? "flex-row-reverse" : ""
-                            }`}
-                        >
-                          {message.sender.id !== currentUser?.id && (
-                            <Avatar className="h-6 w-6">
-                              <AvatarImage src="/placeholder.svg?height=24&width=24" />
-                              <AvatarFallback className="bg-blue-600 text-white text-xs">
-                                {getUserInitials(message.sender.username)}
-                              </AvatarFallback>
-                            </Avatar>
-                          )}
-                          <div
-                            className={`rounded-2xl px-4 py-2 ${message.sender.id === currentUser?.id
-                                ? "bg-blue-600 text-white"
-                                : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
-                              }`}
-                          >
-                            <p className="text-sm">{message.content}</p>
-                            <p
-                              className={`text-xs mt-1 ${message.sender.id === currentUser?.id
-                                  ? "text-blue-100"
-                                  : "text-gray-500 dark:text-gray-400"
-                                }`}
-                            >
-                              {formatTime(message.createdAt)}
-                            </p>
-                          </div>
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src="/placeholder.svg?height=40&width=40" />
+                          <AvatarFallback className="bg-blue-600 text-white">
+                            {getUserInitials(user.username)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <p className="font-medium dark:text-white">{user.username}</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
                         </div>
                       </div>
-                    ))}
-                    <div ref={messagesEndRef} />
-                  </div>
-                </ScrollArea>
-
-                {/* Message Input */}
-                <div className="p-4 border-t dark:border-gray-700">
-                  <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-500 dark:text-gray-400">
-                      <Paperclip className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-500 dark:text-gray-400">
-                      <ImageIcon className="h-4 w-4" />
-                    </Button>
-                    <div className="flex-1 relative">
-                      <Input
-                        ref={inputRef}
-                        value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
-                        onKeyPress={handleKeyPress}
-                        placeholder="Type a message..."
-                        disabled={sendingMessage}
-                        className="pr-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                      />
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 text-gray-500 dark:text-gray-400"
-                      >
-                        <Smile className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <Button
-                      onClick={handleSendMessage}
-                      disabled={!newMessage.trim() || sendingMessage}
-                      size="sm"
-                      className="h-8 w-8 p-0 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600"
-                    >
-                      {sendingMessage ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              /* Conversations List */
-              <div className="flex flex-col h-full">
-                <div className="p-4 border-b dark:border-gray-700">
-                  <Button
-                    onClick={() => setShowUserSearch(true)}
-                    className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    New Chat
-                  </Button>
-                </div>
-                <ScrollArea className="flex-1">
-                  {loading ? (
-                    <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400">
-                      <Loader2 className="w-8 h-8 mb-4 animate-spin" />
-                      <p>Loading conversations...</p>
-                    </div>
-                  ) : conversations.length > 0 ? (
-                    <div className="p-2">
-                      {conversations.map((conversation) => {
-                        const otherUser = conversation.participants.find((p) => p.user.id !== currentUser?.id)?.user
-                        const lastMessage = conversation.messages[conversation.messages.length - 1]
-                        const unreadCount = getUnreadCount(conversation)
-
-                        return (
-                          <div
-                            key={conversation.id}
-                            className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer"
-                            onClick={() => handleConversationClick(conversation.id)}
-                          >
-                            <Avatar className="h-12 w-12">
-                              <AvatarImage src="/placeholder.svg?height=48&width=48" />
-                              <AvatarFallback className="bg-blue-600 text-white">
-                                {otherUser ? getUserInitials(otherUser.username) : "?"}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between mb-1">
-                                <h3 className="font-medium text-sm dark:text-white truncate">
-                                  {otherUser?.username || "Unknown User"}
-                                </h3>
-                                <div className="flex items-center gap-2">
-                                  {lastMessage && (
-                                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                                      {formatTime(lastMessage.createdAt)}
-                                    </span>
-                                  )}
-                                  {unreadCount > 0 && (
-                                    <Badge variant="destructive" className="text-xs h-5 min-w-5 px-1">
-                                      {unreadCount}
-                                    </Badge>
-                                  )}
-                                </div>
-                              </div>
-                              {lastMessage && (
-                                <p className="text-sm text-gray-600 dark:text-gray-300 truncate">
-                                  {lastMessage.sender.id === currentUser?.id ? "You: " : ""}
-                                  {lastMessage.content}
-                                </p>
-                              )}
-                              <div className="flex items-center gap-1 mt-1">
-                                <div
-                                  className={`w-2 h-2 rounded-full ${otherUser && isUserOnline(otherUser) ? "bg-green-500" : "bg-gray-400"
-                                    }`}
-                                />
-                                <span className="text-xs text-gray-500 dark:text-gray-400">
-                                  {otherUser && isUserOnline(otherUser)
-                                    ? "Online"
-                                    : otherUser
-                                      ? formatLastSeen(otherUser.updatedAt)
-                                      : "Offline"}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        )
-                      })}
+                    ))
+                  ) : searchQuery.trim() ? (
+                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                      <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <p>No users found</p>
                     </div>
                   ) : (
-                    <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400">
-                      <MessageCircle className="w-16 h-16 mb-4 opacity-50" />
-                      <p className="text-center">No conversations yet</p>
-                      <p className="text-sm text-center mt-2">Start a new chat to begin messaging</p>
+                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                      <Search className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <p>Search for users to start a conversation</p>
                     </div>
                   )}
-                </ScrollArea>
+                </div>
+              </ScrollArea>
+            </div>
+          ) : activeConversation ? (
+            /* Chat View */
+            <div className="flex flex-col h-full">
+              {/* Messages */}
+              <ScrollArea className="flex-1 p-4">
+                <div className="space-y-4">
+                  {activeMessages.map((message) => (
+                    <div
+                      key={message.id}
+                      className={`flex ${message.sender.id === currentUser?.id ? "justify-end" : "justify-start"}`}
+                    >
+                      <div
+                        className={`flex items-end gap-2 max-w-[80%] ${message.sender.id === currentUser?.id ? "flex-row-reverse" : ""
+                          }`}
+                      >
+                        {message.sender.id !== currentUser?.id && (
+                          <Avatar className="h-6 w-6">
+                            <AvatarImage src="/placeholder.svg?height=24&width=24" />
+                            <AvatarFallback className="bg-blue-600 text-white text-xs">
+                              {getUserInitials(message.sender.username)}
+                            </AvatarFallback>
+                          </Avatar>
+                        )}
+                        <div
+                          className={`rounded-2xl px-4 py-2 ${message.sender.id === currentUser?.id
+                            ? "bg-blue-600 text-white"
+                            : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                            }`}
+                        >
+                          <p className="text-sm">{message.content}</p>
+                          <p
+                            className={`text-xs mt-1 ${message.sender.id === currentUser?.id
+                              ? "text-blue-100"
+                              : "text-gray-500 dark:text-gray-400"
+                              }`}
+                          >
+                            {formatTime(message.createdAt)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  <div ref={messagesEndRef} />
+                </div>
+              </ScrollArea>
+
+              {/* Message Input */}
+              <div className="p-4 border-t dark:border-gray-700">
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 relative">
+                    <Input
+                      ref={inputRef}
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      placeholder="Type a message..."
+                      disabled={sendingMessage}
+                      className="pr-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 text-gray-500 dark:text-gray-400"
+                    >
+                      <Smile className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <Button
+                    onClick={handleSendMessage}
+                    disabled={!newMessage.trim() || sendingMessage}
+                    size="sm"
+                    className="h-8 w-8 p-0 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600"
+                  >
+                    {sendingMessage ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  </Button>
+                </div>
               </div>
-            )}
-          </CardContent>
-        )}
+            </div>
+          ) : (
+            /* Conversations List */
+            <div className="flex flex-col h-full">
+              <div className="p-4 border-b dark:border-gray-700">
+                <Button
+                  onClick={() => setShowUserSearch(true)}
+                  className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  New Chat
+                </Button>
+              </div>
+              <ScrollArea className="flex-1">
+                {loading ? (
+                  <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400">
+                    <Loader2 className="w-8 h-8 mb-4 animate-spin" />
+                    <p>Loading conversations...</p>
+                  </div>
+                ) : conversations.length > 0 ? (
+                  <div className="p-2">
+                    {conversations.map((conversation) => {
+                      const otherUser = conversation.participants.find((p) => p.user.id !== currentUser?.id)?.user
+                      const lastMessage = (conversation.messages ?? [])[(conversation.messages?.length ?? 0) - 1]
+                      const unreadCount = getUnreadCount(conversation)
+
+                      return (
+                        <div
+                          key={conversation.id}
+                          className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer"
+                          onClick={() => handleConversationClick(conversation.id)}
+                        >
+                          <Avatar className="h-12 w-12">
+                            <AvatarImage src="/placeholder.svg?height=48&width=48" />
+                            <AvatarFallback className="bg-blue-600 text-white">
+                              {otherUser ? getUserInitials(otherUser.username) : "?"}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-1">
+                              <h3 className="font-medium text-sm dark:text-white truncate">
+                                {otherUser?.username || "Unknown User"}
+                              </h3>
+                              <div className="flex items-center gap-2">
+                                {lastMessage && (
+                                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                                    {formatTime(lastMessage.createdAt)}
+                                  </span>
+                                )}
+                                {unreadCount > 0 && (
+                                  <Badge variant="destructive" className="text-xs h-5 min-w-5 px-1">
+                                    {unreadCount}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                            {lastMessage && (
+                              <p className="text-sm text-gray-600 dark:text-gray-300 truncate">
+                                {lastMessage.sender.id === currentUser?.id ? "You: " : ""}
+                                {lastMessage.content}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400">
+                    <MessageCircle className="w-16 h-16 mb-4 opacity-50" />
+                    <p className="text-center">No conversations yet</p>
+                    <p className="text-sm text-center mt-2">Start a new chat to begin messaging</p>
+                  </div>
+                )}
+              </ScrollArea>
+            </div>
+          )}
+        </CardContent>
       </Card>
     </div>
   )

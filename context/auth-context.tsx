@@ -7,6 +7,8 @@ import { UserTokenData } from '@/types/token';
 import { jwtDecode } from 'jwt-decode';
 import { RequestType } from '@/types/request';
 import { getRequestTypes } from '@/axios/user';
+import { useChat } from './chat-context';
+import { User } from '@/types/user';
 
 interface AuthContextType {
     login: (googleResponse: any) => Promise<any>;
@@ -25,6 +27,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [currentUser, setCurrentUser] = useState<UserTokenData | null>(null);
     const [requestTypes, setRequestTypes] = useState<RequestType[]>([]);
     const [currentRole, setCurrentRole] = useState<string | null>(null);
+    const { setCurrentUser: setChatUser } = useChat();
 
     const router = useRouter();
 
@@ -34,6 +37,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setAccessTokenState(token);
             const user = jwtDecode<UserTokenData>(token);
             setCurrentUser(user);
+            const chatUser: User = {
+                id: user.sub,
+                username: user.name,
+                email: user.email,
+            };
+            console.log(user);
+            setChatUser(chatUser);
             getAllCurrentRequestTypes();
         }
 

@@ -11,8 +11,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Send, Phone, Video, MoreVertical, ImageIcon, Paperclip, Smile, Loader2 } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
 import { Post } from "@/types/post"
-import { Message } from "@/types/message"
 import { User } from "@/types/user"
+import { Message } from "@/types/chat"
 
 interface ChatModalProps {
   post: Post | null
