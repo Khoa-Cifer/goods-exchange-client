@@ -5,11 +5,6 @@ export async function getAllUsers() {
     return response.data.result;
 }
 
-export async function getAllPosts() {
-    const response = await http.get('/public/all-posts');
-    return response.data.result;
-}
-
 export async function getAllCategories() {
     const response = await http.get('/public/all-categories');
     return response.data.result;

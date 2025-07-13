@@ -90,79 +90,57 @@ export function ReportModal({ post, isOpen, onClose }: ReportModalProps) {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Reason */}
-            <div className="space-y-2">
-              <Label className="dark:text-white">Reason for reporting *</Label>
-              <Select onValueChange={(value) => handleInputChange("reason", value)}>
-                <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                  <SelectValue placeholder="Select a reason" />
-                </SelectTrigger>
-                <SelectContent className="dark:bg-gray-700 dark:border-gray-600">
-                  <SelectItem value="spam">Spam or repetitive content</SelectItem>
-                  <SelectItem value="inappropriate">Inappropriate content</SelectItem>
-                  <SelectItem value="fraud">Fraudulent or misleading</SelectItem>
-                  <SelectItem value="fake">Fake or counterfeit item</SelectItem>
-                  <SelectItem value="harassment">Harassment or abuse</SelectItem>
-                  <SelectItem value="other">Other violation</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="description" className="dark:text-white">
+              Reason for reporting *
+            </Label>
+            <Textarea
+              id="description"
+              placeholder="Please provide specific details about why you're reporting this post..."
+              rows={4}
+              value={formData.description}
+              onChange={(e) => handleInputChange("description", e.target.value)}
+              required
+              className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            />
+          </div>
 
-            {/* Description */}
-            <div className="space-y-2">
-              <Label htmlFor="description" className="dark:text-white">
-                Additional details *
-              </Label>
-              <Textarea
-                id="description"
-                placeholder="Please provide specific details about why you're reporting this post..."
-                rows={4}
-                value={formData.description}
-                onChange={(e) => handleInputChange("description", e.target.value)}
-                required
-                className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-              />
-            </div>
+          {/* Warning */}
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
+            <p className="text-sm text-yellow-800 dark:text-yellow-200">
+              <strong>Note:</strong> False reports may result in restrictions on your account. Please only report
+              content that genuinely violates our community guidelines.
+            </p>
+          </div>
 
-            {/* Warning */}
-            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
-              <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                <strong>Note:</strong> False reports may result in restrictions on your account. Please only report
-                content that genuinely violates our community guidelines.
-              </p>
-            </div>
-
-            {/* Buttons */}
-            <div className="flex gap-3 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleClose}
-                disabled={isSubmitting}
-                className="flex-1 bg-transparent"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="flex-1 bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600"
-              >
-                {isSubmitting ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Submitting...
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-4 h-4 mr-2" />
-                    Submit Report
-                  </>
-                )}
-              </Button>
-            </div>
-          </form>
+          <div className="flex gap-3 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleClose}
+              disabled={isSubmitting}
+              className="flex-1 bg-transparent"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex-1 bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600"
+            >
+              {isSubmitting ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  <Send className="w-4 h-4 mr-2" />
+                  Submit Report
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

@@ -9,19 +9,21 @@ import {
   MapPin,
   User,
   Tag,
-  Heart,
   MessageCircle,
-  Share2,
   ChevronLeft,
   ChevronRight,
   Flag,
   MoreVertical,
+  CircleCheckBig,
 } from "lucide-react"
 import { useState } from "react"
 import { Post } from "@/types/post"
 import { ChatButton } from "@/components/chat-button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { ReportModal } from "./report-modal"
+import { PostStatus } from "@/enum/post-status"
+import { useAuth } from "@/context/auth-context"
+import { Rating } from "./rating"
 
 interface PostDetailModalProps {
   post: Post | null
@@ -32,19 +34,26 @@ interface PostDetailModalProps {
 export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isReportModalOpen, setIsReportModalOpen] = useState(false)
+  const [rating, setRating] = useState<number>(0);
+
+  const { authenticatedUser } = useAuth();
 
   if (!post) return null
 
+  const handleRating = async (selectedPost: Post) => {
+    
+  }
+
   const getStatusBadge = (status: number) => {
     switch (status) {
-      case 1:
+      case PostStatus.Completed:
         return (
           <Badge variant="default" className="bg-green-600">
-            Active
+            Sold
           </Badge>
         )
-      case 2:
-        return <Badge variant="secondary">Sold</Badge>
+      case PostStatus.Confirmed:
+        return <Badge variant="secondary">Active</Badge>
       default:
         return <Badge variant="destructive">Inactive</Badge>
     }
@@ -87,6 +96,20 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
     }
   }
 
+  const renderPostStatus = (currentPost: Post) => {
+    if (currentPost.status === PostStatus.Confirmed) {
+      return "This item is available"
+    } else if (currentPost.status === PostStatus.Completed) {
+      return "This item has been sold"
+    } else {
+      return "This listing is currently inactive"
+    }
+  }
+
+  const handleCompletePost = (currentPost: Post) => {
+
+  }
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
@@ -110,6 +133,15 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
                     <Flag className="w-4 h-4 mr-2" />
                     Report Post
                   </DropdownMenuItem>
+                  {authenticatedUser && authenticatedUser.sub === post.userId && (
+                    <DropdownMenuItem
+                      onClick={() => setIsReportModalOpen(true)}
+                      className="text-green-600 dark:text-green-400 dark:hover:bg-gray-700 cursor-pointer"
+                    >
+                      <CircleCheckBig className="w-4 h-4 mr-2" />
+                      Make post as complete
+                    </DropdownMenuItem>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -187,9 +219,8 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
                   {post.images.map((image, index) => (
                     <button
                       key={image.id}
-                      className={`flex-shrink-0 w-16 h-16 rounded border-2 overflow-hidden ${
-                        index === currentImageIndex ? "border-blue-500" : "border-gray-200 dark:border-gray-600"
-                      }`}
+                      className={`flex-shrink-0 w-16 h-16 rounded border-2 overflow-hidden ${index === currentImageIndex ? "border-blue-500" : "border-gray-200 dark:border-gray-600"
+                        }`}
                       onClick={() => setCurrentImageIndex(index)}
                     >
                       {image.imageBase64 ? (
@@ -206,6 +237,12 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
                     </button>
                   ))}
                 </div>
+              )}
+              <Rating rating={rating} setRating={setRating} />
+              {rating > 0 && (
+                <Button>
+                  Confirm
+                </Button>
               )}
             </div>
 
@@ -242,7 +279,7 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
 
                   <div className="flex items-center gap-3">
                     <User className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                    <span className="dark:text-white">User ID: {post.userId}</span>
+                    <span className="dark:text-white">Username: {post.user.username}</span>
                   </div>
 
                   <div className="flex items-center gap-3">
@@ -289,11 +326,9 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
                 </ChatButton>
               </div>
 
-              {post.status !== 1 && (
-                <div className="text-sm text-gray-500 dark:text-gray-400 text-center">
-                  {post.status === 2 ? "This item has been sold" : "This listing is currently inactive"}
-                </div>
-              )}
+              <div className="text-sm text-gray-500 dark:text-gray-400 text-center">
+                {renderPostStatus(post)}
+              </div>
             </div>
           </div>
         </DialogContent>

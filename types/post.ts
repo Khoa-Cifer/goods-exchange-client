@@ -1,3 +1,6 @@
+import { Rating } from "./rating";
+import { Violation } from "./violation";
+
 export type Post = {
     id: string;
     title: string;
@@ -7,6 +10,8 @@ export type Post = {
     campus: string;
     status: number;
     type: number;
+    ratings: Rating[];
+    violations: Violation[];
     user: {
         username: string;
         email: string;
@@ -27,17 +32,4 @@ export type Post = {
             name: string;
         };
     }[];
-}
-
-export type PostEntity = {
-    id: string;
-    title: string;
-    description: string;
-    price: number;
-    userId: string;
-    campus: string;
-    status: number;
-    type: number;
-    createdAt: Date;
-    updatedAt: Date;
 }

@@ -40,3 +40,8 @@ export const unassignRoleToUser = async (userId: string, roleName: string) => {
     throw error;
   }
 }
+
+export async function getAllPosts() {
+    const response = await http.get('/admin/all-posts');
+    return response.data.result;
+}

@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Search, Filter, XCircle, CheckCircle, Package } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { useEffect, useState } from "react"
-import { assignRoleToUser, unassignRoleToUser } from "@/axios/admin";
+import { assignRoleToUser, getAllPosts, unassignRoleToUser } from "@/axios/admin";
 import { User } from "@/types/user";
 import { formatDate } from "@/lib/utils";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -16,10 +16,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { showNotification } from "@/components/notification-helper";
 import { useAuth } from "@/context/auth-context";
 import { Category } from "@/types/category";
-import { Post, PostEntity } from "@/types/post";
+import { Post } from "@/types/post";
 import { AdminPostCard } from "@/components/admin-post-card";
 import { PostStatus } from "@/enum/post-status";
-import { getAllCategories, getAllPosts, getAllUsers } from "@/axios/public";
+import { getAllCategories, getAllUsers } from "@/axios/public";
 
 export default function AdminDashboard() {
   const { authenticatedUser } = useAuth();
@@ -47,7 +47,7 @@ export default function AdminDashboard() {
     setImageBase64(base64Image);
   }
 
-  const handleUpdatePost = (updatedPost: PostEntity) => {
+  const handleUpdatePost = (updatedPost: Post) => {
     setPosts((prevPosts) =>
       prevPosts.map((post) =>
         post.id === updatedPost.id ? { ...post, status: updatedPost.status } : post

@@ -5,7 +5,7 @@ import type React from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Heart, MessageCircle, MapPin, Calendar, Tag, Eye, Flag, MoreVertical } from "lucide-react"
+import { MessageCircle, MapPin, Calendar, Tag, Eye, Flag, MoreVertical, CircleCheckBig } from "lucide-react"
 import { useState } from "react"
 import { Post } from "@/types/post"
 import { PostDetailModal } from "@/components/post-detail-modal"
@@ -14,6 +14,7 @@ import { ChatButton } from "@/components/chat-button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { PostStatus } from "@/enum/post-status"
 import { ReportModal } from "./report-modal"
+import { useAuth } from "@/context/auth-context"
 
 interface PostCardProps {
   post: Post
@@ -23,6 +24,8 @@ interface PostCardProps {
 export function PostCard({ post, showLoginPrompt = false }: PostCardProps) {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
   const [isReportModalOpen, setIsReportModalOpen] = useState(false)
+
+  const { authenticatedUser } = useAuth();
 
   const getStatusBadge = (status: number) => {
     switch (status) {
@@ -128,6 +131,7 @@ export function PostCard({ post, showLoginPrompt = false }: PostCardProps) {
                   <MoreVertical className="w-4 h-4" />
                 </Button>
               </DropdownMenuTrigger>
+
               <DropdownMenuContent align="end" className="dark:bg-gray-800 dark:border-gray-700">
                 <DropdownMenuItem
                   onClick={handleReport}
@@ -136,6 +140,15 @@ export function PostCard({ post, showLoginPrompt = false }: PostCardProps) {
                   <Flag className="w-4 h-4 mr-2" />
                   Report Post
                 </DropdownMenuItem>
+                {authenticatedUser && authenticatedUser.sub === post.userId && (
+                  <DropdownMenuItem
+                    onClick={() => setIsReportModalOpen(true)}
+                    className="text-green-600 dark:text-green-400 dark:hover:bg-gray-700 cursor-pointer"
+                  >
+                    <CircleCheckBig className="w-4 h-4 mr-2" />
+                    Make post as complete
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

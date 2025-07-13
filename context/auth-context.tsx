@@ -42,7 +42,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 username: user.name,
                 email: user.email,
             };
-            console.log(user);
             setChatUser(chatUser);
             getAllCurrentRequestTypes();
         }

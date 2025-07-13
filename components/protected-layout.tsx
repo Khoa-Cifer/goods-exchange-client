@@ -37,7 +37,7 @@ export default function ProtectedLayout({ children, allowedRole }: ProtectedLayo
                         </Link>
                         <div className="flex gap-4">
                             <ThemeToggle />
-                            {allowedRole === "Seller" || allowedRole === "Buyer" && (
+                            {(allowedRole === "Seller" || allowedRole === "Buyer") && (
                                 <Link href="/request">
                                     <Button variant="outline" className="bg-transparent">
                                         <HelpCircle className="w-4 h-4 mr-2" />
