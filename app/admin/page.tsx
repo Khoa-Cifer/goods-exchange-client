@@ -19,7 +19,8 @@ import { Category } from "@/types/category";
 import { Post } from "@/types/post";
 import { AdminPostCard } from "@/components/admin-post-card";
 import { PostStatus } from "@/enum/post-status";
-import { getAllCategories, getAllUsers } from "@/axios/public";
+import { getAllUsers } from "@/axios/user";
+import { getAllCategories } from "@/axios/category";
 
 export default function AdminDashboard() {
   const { authenticatedUser } = useAuth();

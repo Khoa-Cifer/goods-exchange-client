@@ -21,7 +21,7 @@ import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui
 import { PostCampus } from "@/enum/post-campus"
 import { showNotification } from "@/components/notification-helper"
 import { createPost } from "@/axios/post"
-import { getAllCategories } from "@/axios/public"
+import { getAllCategories } from "@/axios/category"
 
 export default function AddItem() {
   const [categories, setCategories] = useState<Category[]>([]);

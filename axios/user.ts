@@ -22,3 +22,8 @@ export async function getUserSubmittedRequests() {
   const response = await http.get("/users/submitted-requests");
   return response.data.result;
 }
+
+export async function getAllUsers() {
+  const response = await http.get('/users/all-users');
+  return response.data.result;
+}
