@@ -1,6 +1,6 @@
 "use client"
 
-import { getConversationHistory, sendMessageApi } from "@/axios/chat"
+import { createNewConversation, getConversationHistory, sendMessageApi } from "@/axios/chat"
 import { Conversation, Message } from "@/types/chat"
 import { User } from "@/types/user"
 import type React from "react"
@@ -157,29 +157,18 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       if (!currentUser) return ""
 
       try {
-        // Check if conversation already exists
         const existingConv = conversations.find((conv) => conv.participants.some((p) => p.user.id === userId))
-        console.log(existingConv);
         if (existingConv) {
           return existingConv.id
         }
 
-        // Create new conversation via API
-        const response = await fetch("/api/chat/conversations", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ userId }),
-        })
+        const response = await createNewConversation(userId);
 
-        const result = await response.json()
-
-        if (result.success) {
-          setConversations((prev) => [result.data, ...prev])
-          return result.data.id
+        if (response) {
+          setConversations((prev) => [response, ...prev])
+          return response.id
         } else {
-          console.error("Failed to create conversation:", result.error)
+          console.error("Failed to create conversation:", response)
           return ""
         }
       } catch (error) {
