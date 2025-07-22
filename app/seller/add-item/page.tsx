@@ -122,6 +122,11 @@ export default function AddItem() {
   }, []);
 
   const handleCreatePost = async () => {
+    if (price < 0) {
+      showNotification.warning("Price must be larger than 0.")
+      return;
+    }
+
     if (
       title.trim().length === 0 ||
       description.trim().length === 0 ||
