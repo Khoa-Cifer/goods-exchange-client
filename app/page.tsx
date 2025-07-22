@@ -3,32 +3,65 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ArrowRight, Search, } from "lucide-react"
+import { ArrowRight, Check, Plus, Search, } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/context/auth-context"
 import { UserDropdown } from "@/components/user-dropdown"
 import { showNotification } from "@/components/notification-helper"
 import { PostCard } from "@/components/post-card"
-import { categories } from "@/data/mock-categories"
 import { useEffect, useState } from "react"
 import { Post } from "@/types/post"
 import { getPostsByStatus } from "@/axios/post"
 import { PostStatus } from "@/enum/post-status"
+import { Category } from "@/types/category"
+import { getAllCategories } from "@/axios/category"
 
 export default function HomePage() {
   const [confirmedPosts, setConfirmedPosts] = useState<Post[]>([]);
-
+  const [categories, setCategories] = useState<Category[]>([]);
   const { authenticatedUser, logout } = useAuth();
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [postTitleSearchParam, setPostTitleSearchParam] = useState<string>("");
+
+  const handleSelectCategory = (category: Category) => {
+    setSelectedCategories((prev) => {
+      const isSelected = prev.some((c) => c === category.id);
+      const updated = isSelected
+        ? prev.filter((c) => c !== category.id)
+        : [...prev, category.id];
+
+      handleProductInteraction(`category-${category.name}`); // keep your analytics/event
+
+      return updated;
+    });
+  }
 
   const getConfirmedPost = async () => {
-    const response = await getPostsByStatus(PostStatus.Confirmed);
+    const response = await getPostsByStatus(PostStatus.Confirmed, {
+      search: postTitleSearchParam,
+      categoryIds: selectedCategories,
+    });
     setConfirmedPosts(response);
+  }
+
+  const fetchCategories = async () => {
+    const response = await getAllCategories();
+    setCategories(response);
   }
 
   useEffect(() => {
     getConfirmedPost();
+    fetchCategories();
   }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      getConfirmedPost();
+    }, 500);
+
+    return () => clearTimeout(timer); // clean up on unmount
+  }, [postTitleSearchParam, selectedCategories]);
 
   const handleProductInteraction = (action: string, itemTitle?: string) => {
     // Handle different actions with appropriate notifications
@@ -100,14 +133,8 @@ export default function HomePage() {
                 <Input
                   placeholder="Search for items, brands, or categories..."
                   className="pl-12 h-14 text-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  onClick={() => handleProductInteraction("search")}
+                  onChange={(e) => setPostTitleSearchParam(e.target.value)}
                 />
-                <Button
-                  className="absolute right-2 top-2 h-10 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600"
-                  onClick={() => handleProductInteraction("search")}
-                >
-                  Search
-                </Button>
               </div>
             </div>
           </div>
@@ -119,21 +146,30 @@ export default function HomePage() {
         <div className="container mx-auto px-4">
           <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-8 text-center">Shop by Category</h3>
           <div className="flex flex-wrap justify-center gap-3">
-            {categories.map((category) => (
-              <Badge
-                key={category}
-                variant="secondary"
-                className="px-4 py-2 text-sm cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors"
-                onClick={() => handleProductInteraction(`category-${category}`)}
-              >
-                {category}
-              </Badge>
-            ))}
+            {categories.map((category) => {
+              const isSelected = selectedCategories.some(
+                (c) => c === category.id
+              );
+
+              return (
+                <Badge
+                  key={category.id}
+                  variant={isSelected ? "default" : "secondary"}
+                  className={`px-4 py-2 text-sm cursor-pointer flex items-center gap-2 transition-colors ${isSelected
+                    ? "bg-blue-500 text-white hover:bg-blue-600"
+                    : "hover:bg-blue-100 dark:hover:bg-blue-900"
+                    }`}
+                  onClick={() => handleSelectCategory(category)}
+                >
+                  {isSelected ? <Check size={14} /> : <Plus size={14} />}
+                  {category.name}
+                </Badge>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* Featured Items Section */}
       <section id="browse-items" className="py-12 bg-white dark:bg-gray-800">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
@@ -159,7 +195,6 @@ export default function HomePage() {
             )}
           </div>
 
-          {/* Items Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {confirmedPosts && confirmedPosts.map && confirmedPosts.map((post) => (
               <PostCard

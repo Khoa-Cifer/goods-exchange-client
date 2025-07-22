@@ -26,7 +26,21 @@ export async function getPostsByUser() {
   return response.data.result;
 }
 
-export async function getPostsByStatus(status: number) {
-  const response = await http.get(`/posts/get-posts-by-status/${status}`);
+export async function getPostsByStatus(
+  status: number,
+  options?: {
+    search?: string;
+    categoryIds?: string[];
+  }) {
+  const params = new URLSearchParams();
+  if (options?.search) {
+    params.append("search", options.search);
+  }
+
+  if (options?.categoryIds?.length) {
+    params.append("categoryIds", options.categoryIds.join(","));
+  }
+
+  const response = await http.get(`/posts/get-posts-by-status/${status}?${params.toString()}`);
   return response.data.result;
 }
