@@ -5,12 +5,18 @@ import Link from "next/link"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { GoogleLogin } from "@react-oauth/google"
 import { useAuth } from "@/context/auth-context"
-import { redirect } from 'next/navigation';
+import { redirect, useRouter } from 'next/navigation';
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, authenticatedUser } = useAuth();
+  const router = useRouter();
+
+  if (authenticatedUser) {
+    router.push('/');
+    return;
+  }
+
   const handleGoogleLogin = async (response: any) => {
-    console.log('Response from Google:', response);
     await login(response);
   };
 

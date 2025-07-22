@@ -17,7 +17,7 @@ import { showNotification } from "@/components/notification-helper"
 import { Request } from "@/types/request"
 import { useAuth } from "@/context/auth-context"
 import { getUserSubmittedRequests, submitRequest } from "@/axios/user"
-import { formatDate } from "@/lib/utils"
+import { formatDate, getStatusBadge } from "@/lib/utils"
 import { RequestStatus } from "@/enum/request-status"
 
 export default function RequestPage() {
@@ -69,29 +69,6 @@ export default function RequestPage() {
       showNotification.error("Submission Failed", "Failed to submit your request. Please try again.")
     } finally {
       setIsSubmitting(false)
-    }
-  }
-
-  const getStatusBadge = (status: Request["status"]) => {
-    switch (status) {
-      case RequestStatus.Created:
-        return (
-          <Badge variant="secondary">
-            <Clock className="w-3 h-3 mr-1" />
-            Pending
-          </Badge>
-        )
-      case RequestStatus.Confirmed:
-        return (
-          <Badge variant="default">
-            <AlertCircle className="w-3 h-3 mr-1" />
-            Confirmed
-          </Badge>
-        )
-      case RequestStatus.Rejected:
-        return <Badge variant="destructive">Closed</Badge>
-      default:
-        return <Badge variant="outline">Unknown</Badge>
     }
   }
 

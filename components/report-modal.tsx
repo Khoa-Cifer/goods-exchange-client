@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AlertTriangle, Send } from "lucide-react"
 import { showNotification } from "@/components/notification-helper"
 import { Post } from "@/types/post"
+import { reportUser } from "@/axios/violation"
 
 interface ReportModalProps {
   post: Post | null
@@ -19,25 +20,13 @@ interface ReportModalProps {
 }
 
 export function ReportModal({ post, isOpen, onClose }: ReportModalProps) {
-  const [formData, setFormData] = useState({
-    reason: "",
-    description: "",
-  })
   const [isSubmitting, setIsSubmitting] = useState(false)
-
-  const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-  }
+  const [reason, setReason] = useState<string>("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (!formData.reason) {
-      showNotification.warning("Missing Information", "Please select a reason for reporting.")
-      return
-    }
-
-    if (!formData.description.trim()) {
+    console.log(post);
+    if (!reason.trim() || !post) {
       showNotification.warning("Missing Information", "Please provide a description of the issue.")
       return
     }
@@ -47,12 +36,8 @@ export function ReportModal({ post, isOpen, onClose }: ReportModalProps) {
 
     try {
       // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-
-      // Reset form and close modal
-      setFormData({ reason: "", description: "" })
+      await reportUser(post.id, post.userId, reason);
       onClose()
-
       showNotification.success("Report Submitted", "Thank you for your report. Our admin team will review it shortly.")
     } catch (error) {
       showNotification.error("Submission Failed", "Failed to submit your report. Please try again.")
@@ -63,7 +48,7 @@ export function ReportModal({ post, isOpen, onClose }: ReportModalProps) {
 
   const handleClose = () => {
     if (!isSubmitting) {
-      setFormData({ reason: "", description: "" })
+      setReason("");
       onClose()
     }
   }
@@ -98,8 +83,8 @@ export function ReportModal({ post, isOpen, onClose }: ReportModalProps) {
               id="description"
               placeholder="Please provide specific details about why you're reporting this post..."
               rows={4}
-              value={formData.description}
-              onChange={(e) => handleInputChange("description", e.target.value)}
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
               required
               className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             />
@@ -126,6 +111,7 @@ export function ReportModal({ post, isOpen, onClose }: ReportModalProps) {
             <Button
               type="submit"
               disabled={isSubmitting}
+              onClick={handleSubmit}
               className="flex-1 bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600"
             >
               {isSubmitting ? (

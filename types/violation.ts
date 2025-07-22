@@ -13,3 +13,43 @@ export type Violation = {
     createdAt: string;
     updatedAt: string;
 }
+
+export type Report = {
+    id: string;
+    status: number;
+    reason: string;
+    createdAt: string;
+    updatedAt: string;
+    reportedUser: {
+        id: string;
+        username: string;
+        email: string;
+        provider: string;
+        googleId: string;
+        isActive: number;
+        createdAt: string;
+        updatedAt: string;
+    };
+    post: {
+        id: string;
+        title: string;
+        description: string;
+        price: number;
+        userId: string;
+        campus: string;
+        status: number;
+        type: number;
+        createdAt: string;
+        updatedAt: string;
+    };
+    reporter: {
+        id: string;
+        username: string;
+        email: string;
+        provider: string;
+        googleId: string;
+        isActive: number;
+        createdAt: string;
+        updatedAt: string;
+    };
+};

@@ -45,3 +45,14 @@ export async function getAllPosts() {
     const response = await http.get('/admin/all-posts');
     return response.data.result;
 }
+
+export async function getAllReports() {
+    const response = await http.get('/admin/all-reports');
+    return response.data.result;
+}
+
+export async function getAllRequests() {
+    const response = await http.get('/admin/all-requests');
+    return response.data.result;
+}
+

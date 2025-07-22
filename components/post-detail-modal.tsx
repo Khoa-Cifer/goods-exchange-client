@@ -24,6 +24,7 @@ import { ReportModal } from "./report-modal"
 import { PostStatus } from "@/enum/post-status"
 import { useAuth } from "@/context/auth-context"
 import { Rating } from "./rating"
+import { formatDate } from "@/lib/utils"
 
 interface PostDetailModalProps {
   post: Post | null
@@ -41,7 +42,7 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
   if (!post) return null
 
   const handleRating = async (selectedPost: Post) => {
-    
+
   }
 
   const getStatusBadge = (status: number) => {
@@ -126,20 +127,21 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="dark:bg-gray-800 dark:border-gray-700">
-                  <DropdownMenuItem
-                    onClick={() => setIsReportModalOpen(true)}
-                    className="text-red-600 dark:text-red-400 dark:hover:bg-gray-700 cursor-pointer"
-                  >
-                    <Flag className="w-4 h-4 mr-2" />
-                    Report Post
-                  </DropdownMenuItem>
-                  {authenticatedUser && authenticatedUser.sub === post.userId && (
+                  {authenticatedUser && authenticatedUser.sub === post.userId ? (
                     <DropdownMenuItem
                       onClick={() => setIsReportModalOpen(true)}
                       className="text-green-600 dark:text-green-400 dark:hover:bg-gray-700 cursor-pointer"
                     >
                       <CircleCheckBig className="w-4 h-4 mr-2" />
                       Make post as complete
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem
+                      onClick={() => setIsReportModalOpen(true)}
+                      className="text-red-600 dark:text-red-400 dark:hover:bg-gray-700 cursor-pointer"
+                    >
+                      <Flag className="w-4 h-4 mr-2" />
+                      Report Post
                     </DropdownMenuItem>
                   )}
                 </DropdownMenuContent>
@@ -284,13 +286,13 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
 
                   <div className="flex items-center gap-3">
                     <Calendar className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                    <span className="dark:text-white">Posted: {new Date(post.createdAt).toLocaleDateString()}</span>
+                    <span className="dark:text-white">Posted: {formatDate(post.createdAt)}</span>
                   </div>
 
                   {post.updatedAt !== post.createdAt && (
                     <div className="flex items-center gap-3">
                       <Calendar className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                      <span className="dark:text-white">Updated: {new Date(post.updatedAt).toLocaleDateString()}</span>
+                      <span className="dark:text-white">Updated: {formatDate(post.updatedAt)}</span>
                     </div>
                   )}
                 </div>

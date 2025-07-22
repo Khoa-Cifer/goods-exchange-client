@@ -1,5 +1,5 @@
-import { Post, PostEntity } from "@/types/post";
-import { DollarSign, MapPin, Calendar, FileText, Tag, Eye, XCircle } from "lucide-react";
+import { Post } from "@/types/post";
+import { DollarSign, MapPin, Calendar, FileText, Tag } from "lucide-react";
 import { Badge } from "./ui/badge";
 import { formatDate } from "@/lib/utils";
 import { Button } from "./ui/button";
@@ -8,7 +8,7 @@ import { showNotification } from "./notification-helper";
 import { PostStatus } from "@/enum/post-status";
 
 export const AdminPostCard = ({ post, onSelectPreviewImage, onUpdatePost }:
-    { post: Post, onSelectPreviewImage: (base64Image: string) => void, onUpdatePost: (updatedPost: PostEntity) => void }) => {
+    { post: Post, onSelectPreviewImage: (base64Image: string) => void, onUpdatePost: (updatedPost: Post) => void }) => {
     const handleViewPreviewImage = (base64Image: string) => {
         onSelectPreviewImage(base64Image);
     }
@@ -139,8 +139,8 @@ export const AdminPostCard = ({ post, onSelectPreviewImage, onUpdatePost }:
 
             {/* Timestamps */}
             <div className="mt-4 pt-3 border-t dark:border-gray-600 flex justify-between text-xs text-gray-500 dark:text-gray-400">
-                <span>Created: {post.createdAt.toLocaleString()}</span>
-                <span>Updated: {post.updatedAt.toLocaleString()}</span>
+                <span>Created: {formatDate(post.createdAt)}</span>
+                <span>Updated: {formatDate(post.updatedAt)}</span>
             </div>
         </div>
     )

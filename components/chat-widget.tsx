@@ -22,8 +22,14 @@ import {
 } from "lucide-react"
 import { useChat } from "@/context/chat-context"
 import { User } from "@/types/user"
+import { useAuth } from "@/context/auth-context"
 
 export function ChatWidget() {
+  const { authenticatedUser } = useAuth();
+  if (!authenticatedUser) {
+    return;
+  }
+
   const {
     conversations,
     activeConversation,

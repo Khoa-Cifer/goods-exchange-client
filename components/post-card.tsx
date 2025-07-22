@@ -133,20 +133,21 @@ export function PostCard({ post, showLoginPrompt = false }: PostCardProps) {
               </DropdownMenuTrigger>
 
               <DropdownMenuContent align="end" className="dark:bg-gray-800 dark:border-gray-700">
-                <DropdownMenuItem
-                  onClick={handleReport}
-                  className="text-red-600 dark:text-red-400 dark:hover:bg-gray-700 cursor-pointer"
-                >
-                  <Flag className="w-4 h-4 mr-2" />
-                  Report Post
-                </DropdownMenuItem>
-                {authenticatedUser && authenticatedUser.sub === post.userId && (
+                {authenticatedUser && authenticatedUser.sub === post.userId ? (
                   <DropdownMenuItem
                     onClick={() => setIsReportModalOpen(true)}
                     className="text-green-600 dark:text-green-400 dark:hover:bg-gray-700 cursor-pointer"
                   >
                     <CircleCheckBig className="w-4 h-4 mr-2" />
                     Make post as complete
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem
+                    onClick={handleReport}
+                    className="text-red-600 dark:text-red-400 dark:hover:bg-gray-700 cursor-pointer"
+                  >
+                    <Flag className="w-4 h-4 mr-2" />
+                    Report Post
                   </DropdownMenuItem>
                 )}
               </DropdownMenuContent>
