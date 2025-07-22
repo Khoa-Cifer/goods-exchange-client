@@ -51,6 +51,6 @@ export async function approveReport(id: string) {
 }
 
 export async function rejectReport(id: string) {
-  const response = await http.put(`/admin/reports/approve/${id}`);
+  const response = await http.put(`/admin/reports/reject/${id}`);
   return response.data;
 }
