@@ -28,7 +28,7 @@ export default function AddItem() {
 
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
-  const [price, setPrice] = useState<string>("");
+  const [price, setPrice] = useState<number>(0);
   const [images, setImages] = useState<ImageFile[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
   const [campus, setCampus] = useState<string>("");
@@ -125,7 +125,6 @@ export default function AddItem() {
     if (
       title.trim().length === 0 ||
       description.trim().length === 0 ||
-      price.trim().length === 0 ||
       campus.length === 0 ||
       type.length === 0 ||
       selectedCategories.length === 0 ||
@@ -139,7 +138,7 @@ export default function AddItem() {
       const payload = {
         title,
         description,
-        price: parseFloat(price),
+        price: price,
         images: images
           .filter(img => typeof img.base64 === "string" && img.base64 !== null)
           .map(img => ({
@@ -317,9 +316,8 @@ export default function AddItem() {
                   <Input
                     id="price"
                     type="number"
-                    placeholder="0.00"
                     value={price}
-                    onChange={(e) => setPrice(e.target.value)}
+                    onChange={(e) => setPrice(parseInt(e.target.value))}
                     required
                     className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   />
