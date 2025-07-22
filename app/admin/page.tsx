@@ -4,10 +4,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Search, Filter, XCircle, CheckCircle, Package } from "lucide-react"
-import { Input } from "@/components/ui/input"
+import { XCircle, CheckCircle, Package } from "lucide-react"
 import { useEffect, useState } from "react"
-import { assignRoleToUser, banUser, getAllPosts, getAllReports, getAllRequests, unassignRoleToUser, unbanUser } from "@/axios/admin";
+import { approveReport, approveRequest, assignRoleToUser, banUser, getAllPosts, getAllReports, getAllRequests, rejectReport, rejectRequest, unassignRoleToUser, unbanUser } from "@/axios/admin";
 import { User } from "@/types/user";
 import { formatDate, getStatusBadge } from "@/lib/utils";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -22,6 +21,7 @@ import { PostStatus } from "@/enum/post-status";
 import { getAllUsers } from "@/axios/user";
 import { getAllCategories } from "@/axios/category";
 import { Request } from "@/types/request";
+import { Violation } from "@/types/violation";
 
 export default function AdminDashboard() {
   const { authenticatedUser } = useAuth();
@@ -30,7 +30,7 @@ export default function AdminDashboard() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
   const [requests, setRequests] = useState<Request[]>([]);
-  const [reports, setReports] = useState<Report[]>([]);
+  const [reports, setReports] = useState<Violation[]>([]);
 
   const [showPreviewImage, setShowPreviewImage] = useState<boolean>(false);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
@@ -112,13 +112,11 @@ export default function AdminDashboard() {
   const fetchUserRequests = async () => {
     const response = await getAllRequests();
     setRequests(response);
-    console.log(response);
   }
 
   const fetchUserReports = async () => {
     const response = await getAllReports();
     setReports(response);
-    console.log(response);
   }
 
   useEffect(() => {
@@ -143,10 +141,60 @@ export default function AdminDashboard() {
     }
   }
 
-  const handleApproveRequest = (request: Request) => {
+  const handleApproveRequest = async (selectedRequest: Request) => {
+    const response = await approveRequest(selectedRequest.id);
+    if (response) {
+      showNotification.success("Approve request successfully", "Data updating.")
+      setRequests(prevRequests =>
+        prevRequests.map(request =>
+          request.id === selectedRequest.id
+            ? { ...request, status: response.status }
+            : request
+        )
+      );
+    }
   }
 
-  const handleRejectRequest = (request: Request) => {
+  const handleRejectRequest = async (selectedRequest: Request) => {
+    const response = await rejectRequest(selectedRequest.id);
+    if (response) {
+      showNotification.success("Reject request successfully", "Data updating.")
+      setRequests(prevRequests =>
+        prevRequests.map(request =>
+          request.id === selectedRequest.id
+            ? { ...request, status: response.status }
+            : request
+        )
+      );
+    }
+  }
+
+  const handleApproveReport = async (selectedReport: Violation) => {
+    const response = await approveReport(selectedReport.id);
+    if (response) {
+      showNotification.success("Approve report successfully", "Data updating.")
+      setReports(prevReports =>
+        prevReports.map(report =>
+          report.id === selectedReport.id
+            ? { ...report, status: response.status }
+            : report
+        )
+      );
+    }
+  }
+
+  const handleRejectReport = async (selectedReport: Violation) => {
+    const response = await rejectReport(selectedReport.id);
+    if (response) {
+      showNotification.success("Reject report successfully", "Data updating.")
+      setReports(prevReports =>
+        prevReports.map(report =>
+          report.id === selectedReport.id
+            ? { ...report, status: response.status }
+            : report
+        )
+      );
+    }
   }
 
   return (
@@ -190,19 +238,6 @@ export default function AdminDashboard() {
             <CardHeader>
               <div className="flex justify-between items-center">
                 <CardTitle className="dark:text-white">User Management</CardTitle>
-                <div className="flex gap-2">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400 dark:text-gray-500" />
-                    <Input
-                      placeholder="Search users..."
-                      className="pl-10 w-64 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                    />
-                  </div>
-                  <Button variant="outline" size="sm" className="bg-transparent">
-                    <Filter className="w-4 h-4 mr-2" />
-                    Filter
-                  </Button>
-                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -285,19 +320,6 @@ export default function AdminDashboard() {
             <CardHeader>
               <div className="flex justify-between items-center">
                 <CardTitle className="dark:text-white">Post Category Management</CardTitle>
-                <div className="flex gap-2">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400 dark:text-gray-500" />
-                    <Input
-                      placeholder="Search users..."
-                      className="pl-10 w-64 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                    />
-                  </div>
-                  <Button variant="outline" size="sm" className="bg-transparent">
-                    <Filter className="w-4 h-4 mr-2" />
-                    Filter
-                  </Button>
-                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -333,19 +355,6 @@ export default function AdminDashboard() {
             <CardHeader>
               <div className="flex justify-between items-center">
                 <CardTitle className="dark:text-white">Post Management</CardTitle>
-                <div className="flex gap-2">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400 dark:text-gray-500" />
-                    <Input
-                      placeholder="Search posts..."
-                      className="pl-10 w-64 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                    />
-                  </div>
-                  <Button variant="outline" size="sm" className="bg-transparent">
-                    <Filter className="w-4 h-4 mr-2" />
-                    Filter
-                  </Button>
-                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -580,175 +589,69 @@ export default function AdminDashboard() {
             <CardHeader>
               <div className="flex justify-between items-center">
                 <CardTitle className="dark:text-white">User Report</CardTitle>
-                <div className="flex gap-2">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400 dark:text-gray-500" />
-                    <Input
-                      placeholder="Search posts..."
-                      className="pl-10 w-64 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                    />
-                  </div>
-                  <Button variant="outline" size="sm" className="bg-transparent">
-                    <Filter className="w-4 h-4 mr-2" />
-                    Filter
-                  </Button>
-                </div>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <Tabs defaultValue="all" className="w-full">
-                  <TabsList className="grid w-full grid-cols-6 mb-6 dark:bg-gray-700">
-                    <TabsTrigger
-                      value="all"
-                      className="dark:text-gray-300 dark:data-[state=active]:bg-gray-600 dark:data-[state=active]:text-white"
-                    >
-                      All Posts ({posts.length})
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="created"
-                      className="dark:text-gray-300 dark:data-[state=active]:bg-gray-600 dark:data-[state=active]:text-white"
-                    >
-                      Created ({posts.filter((p) => p.status === PostStatus.Created).length})
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="confirmed"
-                      className="dark:text-gray-300 dark:data-[state=active]:bg-gray-600 dark:data-[state=active]:text-white"
-                    >
-                      Confirmed ({posts.filter((p) => p.status === PostStatus.Confirmed).length})
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="completed"
-                      className="dark:text-gray-300 dark:data-[state=active]:bg-gray-600 dark:data-[state=active]:text-white"
-                    >
-                      Completed ({posts.filter((p) => p.status === PostStatus.Completed).length})
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="rejected"
-                      className="dark:text-gray-300 dark:data-[state=active]:bg-gray-600 dark:data-[state=active]:text-white"
-                    >
-                      Rejected ({posts.filter((p) => p.status === PostStatus.Rejected).length})
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="hidden"
-                      className="dark:text-gray-300 dark:data-[state=active]:bg-gray-600 dark:data-[state=active]:text-white"
-                    >
-                      Hidden ({posts.filter((p) => p.status === PostStatus.Hidden).length})
-                    </TabsTrigger>
-                  </TabsList>
-
-                  {/* All Posts */}
-                  <TabsContent value="all" className="space-y-4">
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-lg font-semibold dark:text-white">All Posts</h3>
-                      <div className="flex gap-2">
-                        <Badge variant="default">{posts.length} Total</Badge>
-                        <Badge variant="secondary">{posts.filter((p) => p.status === PostStatus.Created).length} Created</Badge>
-                        <Badge variant="secondary">{posts.filter((p) => p.status === PostStatus.Confirmed).length} Confirmed</Badge>
-                        <Badge variant="secondary">{posts.filter((p) => p.status === PostStatus.Completed).length} Completed</Badge>
-                        <Badge variant="destructive">{posts.filter((p) => p.status === PostStatus.Rejected).length} Rejected</Badge>
-                        <Badge variant="destructive">{posts.filter((p) => p.status === PostStatus.Hidden).length} Hidden</Badge>
-                      </div>
-                    </div>
-                    {posts && posts.map && posts
-                      .map((post) => (
-                        <AdminPostCard
-                          key={post.id} post={post}
-                          onSelectPreviewImage={handleViewPreviewImage}
-                          onUpdatePost={handleUpdatePost} />
-                      ))}
-                  </TabsContent>
-
-                  <TabsContent value="created" className="space-y-4">
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-lg font-semibold dark:text-white">Active Posts</h3>
-                      <Badge variant="secondary">{posts.filter((p) => p.status === PostStatus.Created).length} Posts</Badge>
-                    </div>
-                    {posts && posts.map && posts
-                      .filter((post) => post.status === PostStatus.Created)
-                      .map((post) => (
-                        <AdminPostCard key={post.id} post={post} onSelectPreviewImage={handleViewPreviewImage} onUpdatePost={handleUpdatePost} />
-                      ))}
-                    {posts.filter((post) => post.status === PostStatus.Created).length === 0 && (
-                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                        <Package className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                        <p>No active posts found</p>
-                      </div>
-                    )}
-                  </TabsContent>
-
-                  <TabsContent value="confirmed" className="space-y-4">
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-lg font-semibold dark:text-white">Confirmed Posts</h3>
-                      <Badge variant="secondary">{posts.filter((p) => p.status === PostStatus.Confirmed).length} Posts</Badge>
-                    </div>
-                    {posts && posts.map && posts
-                      .filter((post) => post.status === PostStatus.Confirmed)
-                      .map((post) => (
-                        <AdminPostCard key={post.id} post={post} onSelectPreviewImage={handleViewPreviewImage} onUpdatePost={handleUpdatePost} />
-                      ))}
-                    {posts.filter((post) => post.status === PostStatus.Confirmed).length === 0 && (
-                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                        <CheckCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                        <p>No sold posts found</p>
-                      </div>
-                    )}
-                  </TabsContent>
-
-                  <TabsContent value="completed" className="space-y-4">
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-lg font-semibold dark:text-white">Completed Posts</h3>
-                      <Badge variant="secondary">{posts.filter((p) => p.status === PostStatus.Completed).length} Posts</Badge>
-                    </div>
-                    {posts && posts.map && posts
-                      .filter((post) => post.status === PostStatus.Completed)
-                      .map((post) => (
-                        <AdminPostCard key={post.id} post={post} onSelectPreviewImage={handleViewPreviewImage} onUpdatePost={handleUpdatePost} />
-                      ))}
-                    {posts.filter((post) => post.status === PostStatus.Completed).length === 0 && (
-                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                        <CheckCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                        <p>No sold posts found</p>
-                      </div>
-                    )}
-                  </TabsContent>
-
-                  <TabsContent value="rejected" className="space-y-4">
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-lg font-semibold dark:text-white">Rejected Posts</h3>
-                      <Badge variant="destructive">{posts.filter((p) => p.status === PostStatus.Rejected).length} Posts</Badge>
-                    </div>
-                    {posts && posts.map && posts
-                      .filter((post) => post.status === PostStatus.Rejected)
-                      .map((post) => (
-                        <AdminPostCard key={post.id} post={post} onSelectPreviewImage={handleViewPreviewImage} onUpdatePost={handleUpdatePost} />
-                      ))}
-                    {posts.filter((post) => post.status === PostStatus.Rejected).length === 0 && (
-                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                        <XCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                        <p>No inactive posts found</p>
-                      </div>
-                    )}
-                  </TabsContent>
-
-                  <TabsContent value="hidden" className="space-y-4">
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-lg font-semibold dark:text-white">Hidden Posts</h3>
-                      <Badge variant="destructive">{posts.filter((p) => p.status === PostStatus.Hidden).length} Posts</Badge>
-                    </div>
-                    {posts && posts.map && posts
-                      .filter((post) => post.status === PostStatus.Hidden)
-                      .map((post) => (
-                        <AdminPostCard key={post.id} post={post} onSelectPreviewImage={handleViewPreviewImage} onUpdatePost={handleUpdatePost} />
-                      ))}
-                    {posts.filter((post) => post.status === PostStatus.Hidden).length === 0 && (
-                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                        <XCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                        <p>No inactive posts found</p>
-                      </div>
-                    )}
-                  </TabsContent>
-                </Tabs>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b dark:border-gray-700">
+                      <th className="text-left text-sm py-3 px-4 dark:text-white">Reporter Info</th>
+                      <th className="text-left text-sm py-3 px-4 dark:text-white">Reported User Info</th>
+                      <th className="text-left text-sm py-3 px-4 dark:text-white">Post Info</th>
+                      <th className="text-left text-sm py-3 px-4 dark:text-white">Reason</th>
+                      <th className="text-left text-sm py-3 px-4 dark:text-white">Status</th>
+                      <th className="text-left text-sm py-3 px-4 dark:text-white">Created At</th>
+                      <th className="text-left text-sm py-3 px-4 dark:text-white">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {reports && reports.length > 0 && reports.map && reports.map((report) => (
+                      <tr
+                        key={report.id}
+                        className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+                      >
+                        <td className="py-3 px-4">
+                          <div>
+                            <p className="font-medium dark:text-white">{report.reporter.username}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-300">{report.reporter.email}</p>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div>
+                            <p className="font-medium dark:text-white">{report.reportedUser.username}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-300">{report.reportedUser.email}</p>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-300">{report.post.title}</td>
+                        <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-300">{report.reason}</td>
+                        <td className="py-3 px-4 text-sm dark:text-white">{getStatusBadge(report.status)}</td>
+                        <td className="py-3 px-4 text-sm dark:text-white">{formatDate(report.createdAt)}</td>
+                        <td className="py-3 px-4">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="outline" size="sm" className="bg-dark:bg-gray-700 dark:text-white">
+                                Actions
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="start">
+                              <DropdownMenuItem
+                                onClick={() => handleApproveReport(report)}
+                                className="text-blue-600 dark:text-blue-400">
+                                Approve
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleRejectReport(report)}
+                                className="text-red-600 dark:text-red-400">
+                                Reject
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </CardContent>
           </Card>

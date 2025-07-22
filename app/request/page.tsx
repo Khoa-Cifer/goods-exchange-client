@@ -16,9 +16,9 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { showNotification } from "@/components/notification-helper"
 import { Request } from "@/types/request"
 import { useAuth } from "@/context/auth-context"
-import { getUserSubmittedRequests, submitRequest } from "@/axios/user"
 import { formatDate, getStatusBadge } from "@/lib/utils"
 import { RequestStatus } from "@/enum/request-status"
+import { getUserSubmittedRequests, submitRequest } from "@/axios/request"
 
 export default function RequestPage() {
   const { allRequestTypes } = useAuth();

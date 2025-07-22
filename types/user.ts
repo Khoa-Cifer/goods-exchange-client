@@ -17,8 +17,8 @@ export type User = {
     googleId?: string;
     isActive?: number;
     userRoles?: UserRole[];
-    createdAt: string;
-    updatedAt: string;
+    createdAt?: string;
+    updatedAt?: string;
     messages?: Message[];
     conversations?: Conversation[];
 };

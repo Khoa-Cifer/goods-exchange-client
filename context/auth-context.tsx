@@ -6,9 +6,9 @@ import { useRouter } from 'next/navigation';
 import { UserTokenData } from '@/types/token';
 import { jwtDecode } from 'jwt-decode';
 import { RequestType } from '@/types/request';
-import { getRequestTypes } from '@/axios/user';
 import { useChat } from './chat-context';
 import { User } from '@/types/user';
+import { getRequestTypes } from '@/axios/request';
 
 interface AuthContextType {
     login: (googleResponse: any) => Promise<any>;
