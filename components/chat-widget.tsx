@@ -1,14 +1,14 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useRef, useEffect, useCallback, useMemo } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   MessageCircle,
   Send,
@@ -19,10 +19,10 @@ import {
   Plus,
   Smile,
   Loader2,
-} from "lucide-react"
-import { useChat } from "@/context/chat-context"
-import { User } from "@/types/user"
-import { useAuth } from "@/context/auth-context"
+} from "lucide-react";
+import { useChat } from "@/context/chat-context";
+import { User } from "@/types/user";
+import { useAuth } from "@/context/auth-context";
 
 export function ChatWidget() {
   const { authenticatedUser } = useAuth();
@@ -44,150 +44,164 @@ export function ChatWidget() {
     markAsRead,
     searchUsers,
     getOrCreateConversation,
-  } = useChat()
+  } = useChat();
 
-  const [newMessage, setNewMessage] = useState("")
-  const [searchQuery, setSearchQuery] = useState("")
-  const [showUserSearch, setShowUserSearch] = useState(false)
-  const [searchResults, setSearchResults] = useState<User[]>([])
-  const [searchLoading, setSearchLoading] = useState(false)
-  const [sendingMessage, setSendingMessage] = useState(false)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
-
+  const [newMessage, setNewMessage] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showUserSearch, setShowUserSearch] = useState(false);
+  const [searchResults, setSearchResults] = useState<User[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  let otherParticipant = null;
   const activeConv = useMemo(
     () => conversations.find((c) => c.id === activeConversation),
-    [conversations, activeConversation],
-  )
+    [conversations, activeConversation]
+  );
 
-  const activeMessages = useMemo(() => activeConv?.messages || [], [activeConv])
+  const activeMessages = useMemo(
+    () => activeConv?.messages || [],
+    [activeConv]
+  );
 
-  const otherParticipant = useMemo(
-    () => activeConv?.participants.find((p) => p.user.id !== currentUser?.id)?.user,
-    [activeConv, currentUser?.id],
-  )
+  try {
+    otherParticipant = useMemo(
+      () =>
+        activeConv?.participants.find((p) => p.user.id !== currentUser?.id)
+          ?.user,
+      [activeConv, currentUser?.id]
+    );
+  } catch (error) {
+    console.log(error);
+    window.location.reload();
+  }
 
   // Auto scroll to bottom - only when messages change
   useEffect(() => {
     if (activeMessages.length > 0) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
-  }, [activeMessages.length])
+  }, [activeMessages.length]);
 
   // Focus input when conversation changes
   useEffect(() => {
     if (activeConversation && isGlobalChatOpen) {
-      const timer = setTimeout(() => inputRef.current?.focus(), 100)
-      return () => clearTimeout(timer)
+      const timer = setTimeout(() => inputRef.current?.focus(), 100);
+      return () => clearTimeout(timer);
     }
-  }, [activeConversation, isGlobalChatOpen])
+  }, [activeConversation, isGlobalChatOpen]);
 
   // Mark messages as read when conversation is active
   useEffect(() => {
     if (activeConversation && isGlobalChatOpen) {
-      markAsRead(activeConversation)
+      markAsRead(activeConversation);
     }
-  }, [activeConversation, isGlobalChatOpen, markAsRead])
+  }, [activeConversation, isGlobalChatOpen, markAsRead]);
 
   // Handle user search with debouncing
   useEffect(() => {
-    if (!showUserSearch) return
+    if (!showUserSearch) return;
 
     const timer = setTimeout(async () => {
-      setSearchLoading(true)
+      setSearchLoading(true);
       try {
-        const results = await searchUsers(searchQuery)
-        setSearchResults(results)
+        const results = await searchUsers(searchQuery);
+        setSearchResults(results);
       } catch (error) {
-        console.error("Error searching users:", error)
-        setSearchResults([])
+        console.error("Error searching users:", error);
+        setSearchResults([]);
       } finally {
-        setSearchLoading(false)
+        setSearchLoading(false);
       }
-    }, 300)
+    }, 300);
 
-    return () => clearTimeout(timer)
-  }, [searchQuery, searchUsers, showUserSearch])
+    return () => clearTimeout(timer);
+  }, [searchQuery, searchUsers, showUserSearch]);
 
   const handleSendMessage = useCallback(async () => {
-    if (!newMessage.trim() || !activeConversation || sendingMessage) return
+    if (!newMessage.trim() || !activeConversation || sendingMessage) return;
 
-    setSendingMessage(true)
+    setSendingMessage(true);
     try {
-      await sendMessage(activeConversation, newMessage.trim())
-      setNewMessage("")
+      await sendMessage(activeConversation, newMessage.trim());
+      setNewMessage("");
     } catch (error) {
-      console.error("Error sending message:", error)
+      console.error("Error sending message:", error);
     } finally {
-      setSendingMessage(false)
+      setSendingMessage(false);
     }
-  }, [newMessage, activeConversation, sendMessage, sendingMessage])
+  }, [newMessage, activeConversation, sendMessage, sendingMessage]);
 
   const handleKeyPress = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault()
-        handleSendMessage()
+        e.preventDefault();
+        handleSendMessage();
       }
     },
-    [handleSendMessage],
-  )
+    [handleSendMessage]
+  );
 
   const handleConversationClick = useCallback(
     (conversationId: string) => {
-      setActiveConversation(conversationId)
-      setShowUserSearch(false)
-      markAsRead(conversationId)
+      setActiveConversation(conversationId);
+      setShowUserSearch(false);
+      markAsRead(conversationId);
     },
-    [setActiveConversation, markAsRead],
-  )
+    [setActiveConversation, markAsRead]
+  );
 
   const handleUserClick = useCallback(
     async (user: User) => {
       try {
-        const conversationId = await getOrCreateConversation(user.id)
-        setActiveConversation(conversationId)
-        setShowUserSearch(false)
-        setSearchQuery("")
-        setSearchResults([])
+        const conversationId = await getOrCreateConversation(user.id);
+        setActiveConversation(conversationId);
+        setShowUserSearch(false);
+        setSearchQuery("");
+        setSearchResults([]);
       } catch (error) {
-        console.error("Error creating conversation:", error)
+        console.error("Error creating conversation:", error);
       }
     },
-    [getOrCreateConversation, setActiveConversation],
-  )
+    [getOrCreateConversation, setActiveConversation]
+  );
 
   const formatTime = useCallback((dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-  }, [])
+    const date = new Date(dateString);
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  }, []);
 
   const formatLastSeen = useCallback((dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60))
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMinutes = Math.floor(
+      (now.getTime() - date.getTime()) / (1000 * 60)
+    );
 
-    if (diffInMinutes < 1) return "Just now"
-    if (diffInMinutes < 60) return `${diffInMinutes}m ago`
-    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`
-    return `${Math.floor(diffInMinutes / 1440)}d ago`
-  }, [])
+    if (diffInMinutes < 1) return "Just now";
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
+    return `${Math.floor(diffInMinutes / 1440)}d ago`;
+  }, []);
 
   const getUnreadCount = useCallback(
     (conversation: any) => {
-      if (!currentUser) return 0
-      return conversation.messages.filter((msg: any) => !msg.isRead && msg.sender.id !== currentUser.id).length
+      if (!currentUser) return 0;
+      return conversation.messages.filter(
+        (msg: any) => !msg.isRead && msg.sender.id !== currentUser.id
+      ).length;
     },
-    [currentUser],
-  )
+    [currentUser]
+  );
 
   const getUserInitials = useCallback((username: string) => {
     return username
       .split(" ")
       .map((n) => n[0])
       .join("")
-      .toUpperCase()
-  }, [])
+      .toUpperCase();
+  }, []);
 
   // Chat toggle button (always visible)
   if (!isGlobalChatOpen) {
@@ -206,7 +220,7 @@ export function ChatWidget() {
           )}
         </Button>
       </div>
-    )
+    );
   }
 
   return (
@@ -217,7 +231,12 @@ export function ChatWidget() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               {activeConversation && !showUserSearch ? (
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setActiveConversation(null)}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  onClick={() => setActiveConversation(null)}
+                >
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
               ) : null}
@@ -225,12 +244,17 @@ export function ChatWidget() {
                 {activeConversation && otherParticipant
                   ? otherParticipant.username
                   : showUserSearch
-                    ? "New Chat"
-                    : "Messages"}
+                  ? "New Chat"
+                  : "Messages"}
               </CardTitle>
             </div>
             <div className="flex items-center gap-1">
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={closeGlobalChat}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={closeGlobalChat}
+              >
                 <X className="h-4 w-4" />
               </Button>
             </div>
@@ -276,8 +300,12 @@ export function ChatWidget() {
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
-                          <p className="font-medium dark:text-white">{user.username}</p>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
+                          <p className="font-medium dark:text-white">
+                            {user.username}
+                          </p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            {user.email}
+                          </p>
                         </div>
                       </div>
                     ))
@@ -304,11 +332,18 @@ export function ChatWidget() {
                   {activeMessages.map((message) => (
                     <div
                       key={message.id}
-                      className={`flex ${message.sender.id === currentUser?.id ? "justify-end" : "justify-start"}`}
+                      className={`flex ${
+                        message.sender.id === currentUser?.id
+                          ? "justify-end"
+                          : "justify-start"
+                      }`}
                     >
                       <div
-                        className={`flex items-end gap-2 max-w-[80%] ${message.sender.id === currentUser?.id ? "flex-row-reverse" : ""
-                          }`}
+                        className={`flex items-end gap-2 max-w-[80%] ${
+                          message.sender.id === currentUser?.id
+                            ? "flex-row-reverse"
+                            : ""
+                        }`}
                       >
                         {message.sender.id !== currentUser?.id && (
                           <Avatar className="h-6 w-6">
@@ -319,17 +354,19 @@ export function ChatWidget() {
                           </Avatar>
                         )}
                         <div
-                          className={`rounded-2xl px-4 py-2 ${message.sender.id === currentUser?.id
-                            ? "bg-blue-600 text-white"
-                            : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
-                            }`}
+                          className={`rounded-2xl px-4 py-2 ${
+                            message.sender.id === currentUser?.id
+                              ? "bg-blue-600 text-white"
+                              : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                          }`}
                         >
                           <p className="text-sm">{message.content}</p>
                           <p
-                            className={`text-xs mt-1 ${message.sender.id === currentUser?.id
-                              ? "text-blue-100"
-                              : "text-gray-500 dark:text-gray-400"
-                              }`}
+                            className={`text-xs mt-1 ${
+                              message.sender.id === currentUser?.id
+                                ? "text-blue-100"
+                                : "text-gray-500 dark:text-gray-400"
+                            }`}
                           >
                             {formatTime(message.createdAt)}
                           </p>
@@ -368,7 +405,11 @@ export function ChatWidget() {
                     size="sm"
                     className="h-8 w-8 p-0 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600"
                   >
-                    {sendingMessage ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                    {sendingMessage ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Send className="h-4 w-4" />
+                    )}
                   </Button>
                 </div>
               </div>
@@ -394,20 +435,28 @@ export function ChatWidget() {
                 ) : conversations.length > 0 ? (
                   <div className="p-2">
                     {conversations.map((conversation) => {
-                      const otherUser = conversation.participants.find((p) => p.user.id !== currentUser?.id)?.user
-                      const lastMessage = (conversation.messages ?? [])[(conversation.messages?.length ?? 0) - 1]
-                      const unreadCount = getUnreadCount(conversation)
+                      const otherUser = conversation.participants.find(
+                        (p) => p.user.id !== currentUser?.id
+                      )?.user;
+                      const lastMessage = (conversation.messages ?? [])[
+                        (conversation.messages?.length ?? 0) - 1
+                      ];
+                      const unreadCount = getUnreadCount(conversation);
 
                       return (
                         <div
                           key={conversation.id}
                           className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer"
-                          onClick={() => handleConversationClick(conversation.id)}
+                          onClick={() =>
+                            handleConversationClick(conversation.id)
+                          }
                         >
                           <Avatar className="h-12 w-12">
                             <AvatarImage src="/placeholder.svg?height=48&width=48" />
                             <AvatarFallback className="bg-blue-600 text-white">
-                              {otherUser ? getUserInitials(otherUser.username) : "?"}
+                              {otherUser
+                                ? getUserInitials(otherUser.username)
+                                : "?"}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
@@ -422,7 +471,10 @@ export function ChatWidget() {
                                   </span>
                                 )}
                                 {unreadCount > 0 && (
-                                  <Badge variant="destructive" className="text-xs h-5 min-w-5 px-1">
+                                  <Badge
+                                    variant="destructive"
+                                    className="text-xs h-5 min-w-5 px-1"
+                                  >
                                     {unreadCount}
                                   </Badge>
                                 )}
@@ -430,20 +482,24 @@ export function ChatWidget() {
                             </div>
                             {lastMessage && (
                               <p className="text-sm text-gray-600 dark:text-gray-300 truncate">
-                                {lastMessage.sender.id === currentUser?.id ? "You: " : ""}
+                                {lastMessage.sender.id === currentUser?.id
+                                  ? "You: "
+                                  : ""}
                                 {lastMessage.content}
                               </p>
                             )}
                           </div>
                         </div>
-                      )
+                      );
                     })}
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400">
                     <MessageCircle className="w-16 h-16 mb-4 opacity-50" />
                     <p className="text-center">No conversations yet</p>
-                    <p className="text-sm text-center mt-2">Start a new chat to begin messaging</p>
+                    <p className="text-sm text-center mt-2">
+                      Start a new chat to begin messaging
+                    </p>
                   </div>
                 )}
               </ScrollArea>
@@ -452,5 +508,5 @@ export function ChatWidget() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
