@@ -1,6 +1,7 @@
-"use client"
+"use client";
 
 import { setGlobalLoadingHandler } from "@/lib/loading-helper";
+import { Loader2 } from "lucide-react";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 const LoadingContext = createContext({
@@ -22,7 +23,7 @@ export const LoadingProvider: React.FC<{ children: React.ReactNode }> = ({
       {children}
       {isLoading && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="text-white text-xl">Loading...</div>
+          <Loader2 className="h-8 w-8 animate-spin text-white" />
         </div>
       )}
     </LoadingContext.Provider>
