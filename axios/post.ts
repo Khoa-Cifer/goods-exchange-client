@@ -2,7 +2,7 @@ import { CreatePostRequest } from "@/interface/create-post";
 import http from "./http";
 
 export async function createPost(data: CreatePostRequest) {
-  const response = await http.post('/posts/create-post', data);
+  const response = await http.post("/posts/create-post", data);
   return response.data;
 }
 
@@ -31,7 +31,8 @@ export async function getPostsByStatus(
   options?: {
     search?: string;
     categoryIds?: string[];
-  }) {
+  }
+) {
   const params = new URLSearchParams();
   if (options?.search) {
     params.append("search", options.search);
@@ -41,6 +42,16 @@ export async function getPostsByStatus(
     params.append("categoryIds", options.categoryIds.join(","));
   }
 
-  const response = await http.get(`/posts/get-posts-by-status/${status}?${params.toString()}`);
+  const response = await http.get(
+    `/posts/get-posts-by-status/${status}?${params.toString()}`
+  );
+  return response.data.result;
+}
+
+export async function createComment(postId: string, content: string) {
+  const response = await http.post("/posts/post-comment", {
+    postId: postId,
+    content: content,
+  });
   return response.data.result;
 }

@@ -1,9 +1,14 @@
-"use client"
+"use client";
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import {
   Calendar,
   MapPin,
@@ -15,35 +20,79 @@ import {
   Flag,
   MoreVertical,
   CircleCheckBig,
-} from "lucide-react"
-import { useState } from "react"
-import { Post } from "@/types/post"
-import { ChatButton } from "@/components/chat-button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { ReportModal } from "./report-modal"
-import { PostStatus } from "@/enum/post-status"
-import { useAuth } from "@/context/auth-context"
-import { Rating } from "./rating"
-import { formatDate } from "@/lib/utils"
+  Send,
+} from "lucide-react";
+import { useState } from "react";
+import { Post } from "@/types/post";
+import { ChatButton } from "@/components/chat-button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ReportModal } from "./report-modal";
+import { PostStatus } from "@/enum/post-status";
+import { useAuth } from "@/context/auth-context";
+import { Rating } from "./rating";
+import { formatDate } from "@/lib/utils";
+import { Comment } from "@/types/comment";
+import { Textarea } from "./ui/textarea";
 
 interface PostDetailModalProps {
-  post: Post | null
-  isOpen: boolean
-  onClose: () => void
+  post: Post | null;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps) {
-  const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const [isReportModalOpen, setIsReportModalOpen] = useState(false)
+const mockComments = [
+  {
+    id: "1",
+    content: "Is this still available? I'm very interested!",
+    userId: "user1",
+    userName: "John Doe",
+    userAvatar: "/placeholder.svg?height=32&width=32",
+    postId: "1",
+    createdAt: "2024-01-15T10:30:00Z",
+    updatedAt: "2024-01-15T10:30:00Z",
+  },
+  {
+    id: "2",
+    content: "Great condition! Would you consider $80?",
+    userId: "user2",
+    userName: "Sarah Smith",
+    postId: "1",
+    createdAt: "2024-01-15T14:20:00Z",
+    updatedAt: "2024-01-15T14:20:00Z",
+  },
+  {
+    id: "3",
+    content: "Can you provide more details about the specifications?",
+    userId: "user3",
+    userName: "Mike Johnson",
+    postId: "1",
+    createdAt: "2024-01-16T09:15:00Z",
+    updatedAt: "2024-01-16T09:15:00Z",
+  },
+];
+
+export function PostDetailModal({
+  post,
+  isOpen,
+  onClose,
+}: PostDetailModalProps) {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [rating, setRating] = useState<number>(0);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [newComment, setNewComment] = useState("");
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
 
   const { authenticatedUser } = useAuth();
 
-  if (!post) return null
+  if (!post) return null;
 
-  const handleRating = async (selectedPost: Post) => {
-
-  }
+  const handleRating = async () => {};
 
   const getStatusBadge = (status: number) => {
     switch (status) {
@@ -52,13 +101,13 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
           <Badge variant="default" className="bg-green-600">
             Sold
           </Badge>
-        )
+        );
       case PostStatus.Confirmed:
-        return <Badge variant="secondary">Active</Badge>
+        return <Badge variant="secondary">Active</Badge>;
       default:
-        return <Badge variant="destructive">Inactive</Badge>
+        return <Badge variant="destructive">Inactive</Badge>;
     }
-  }
+  };
 
   const getTypeBadge = (type: number) => {
     switch (type) {
@@ -67,49 +116,78 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
           <Badge variant="outline" className="border-blue-500 text-blue-600">
             For Sale
           </Badge>
-        )
+        );
       case 2:
         return (
-          <Badge variant="outline" className="border-purple-500 text-purple-600">
+          <Badge
+            variant="outline"
+            className="border-purple-500 text-purple-600"
+          >
             Looking For
           </Badge>
-        )
+        );
       case 3:
         return (
-          <Badge variant="outline" className="border-orange-500 text-orange-600">
+          <Badge
+            variant="outline"
+            className="border-orange-500 text-orange-600"
+          >
             Exchange
           </Badge>
-        )
+        );
       default:
-        return <Badge variant="outline">Unknown</Badge>
+        return <Badge variant="outline">Unknown</Badge>;
     }
-  }
+  };
 
   const nextImage = () => {
     if (post.images.length > 0) {
-      setCurrentImageIndex((prev) => (prev + 1) % post.images.length)
+      setCurrentImageIndex((prev) => (prev + 1) % post.images.length);
     }
-  }
+  };
 
   const prevImage = () => {
     if (post.images.length > 0) {
-      setCurrentImageIndex((prev) => (prev - 1 + post.images.length) % post.images.length)
+      setCurrentImageIndex(
+        (prev) => (prev - 1 + post.images.length) % post.images.length
+      );
     }
-  }
+  };
 
   const renderPostStatus = (currentPost: Post) => {
     if (currentPost.status === PostStatus.Confirmed) {
-      return "This item is available"
+      return "This item is available";
     } else if (currentPost.status === PostStatus.Completed) {
-      return "This item has been sold"
+      return "This item has been sold";
     } else {
-      return "This listing is currently inactive"
+      return "This listing is currently inactive";
     }
-  }
+  };
 
-  const handleCompletePost = (currentPost: Post) => {
+  const handleSubmitComment = async () => {
+    if (!newComment.trim()) return;
 
-  }
+    setIsSubmittingComment(true);
+
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    const comment: Comment = {
+      id: Date.now().toString(),
+      content: newComment,
+      userId: "current-user",
+      userName: "Current User",
+      postId: post.id,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    setComments((prev) => [...prev, comment]);
+    setNewComment("");
+    setIsSubmittingComment(false);
+  };
+
+  const handleCompletePost = (currentPost: Post) => {};
 
   return (
     <>
@@ -117,7 +195,9 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>
             <div className="flex items-center justify-between">
-              <DialogTitle className="text-2xl font-bold dark:text-white">{post.title}</DialogTitle>
+              <DialogTitle className="text-2xl font-bold dark:text-white">
+                {post.title}
+              </DialogTitle>
 
               {/* More Actions Dropdown */}
               <DropdownMenu>
@@ -126,8 +206,12 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
                     <MoreVertical className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="dark:bg-gray-800 dark:border-gray-700">
-                  {authenticatedUser && authenticatedUser.sub === post.userId ? (
+                <DropdownMenuContent
+                  align="end"
+                  className="dark:bg-gray-800 dark:border-gray-700"
+                >
+                  {authenticatedUser &&
+                  authenticatedUser.sub === post.userId ? (
                     <DropdownMenuItem
                       onClick={() => setIsReportModalOpen(true)}
                       className="text-green-600 dark:text-green-400 dark:hover:bg-gray-700 cursor-pointer"
@@ -197,7 +281,11 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
                         {post.images.map((_, index) => (
                           <button
                             key={index}
-                            className={`w-2 h-2 rounded-full ${index === currentImageIndex ? "bg-white" : "bg-white/50"}`}
+                            className={`w-2 h-2 rounded-full ${
+                              index === currentImageIndex
+                                ? "bg-white"
+                                : "bg-white/50"
+                            }`}
                             onClick={() => setCurrentImageIndex(index)}
                           />
                         ))}
@@ -221,8 +309,11 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
                   {post.images.map((image, index) => (
                     <button
                       key={image.id}
-                      className={`flex-shrink-0 w-16 h-16 rounded border-2 overflow-hidden ${index === currentImageIndex ? "border-blue-500" : "border-gray-200 dark:border-gray-600"
-                        }`}
+                      className={`flex-shrink-0 w-16 h-16 rounded border-2 overflow-hidden ${
+                        index === currentImageIndex
+                          ? "border-blue-500"
+                          : "border-gray-200 dark:border-gray-600"
+                      }`}
                       onClick={() => setCurrentImageIndex(index)}
                     >
                       {image.imageBase64 ? (
@@ -233,18 +324,22 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
                         />
                       ) : (
                         <div className="w-full h-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
-                          <span className="text-xs text-gray-500">{index + 1}</span>
+                          <span className="text-xs text-gray-500">
+                            {index + 1}
+                          </span>
                         </div>
                       )}
                     </button>
                   ))}
                 </div>
               )}
-              <Rating rating={rating} setRating={setRating} />
-              {rating > 0 && (
-                <Button>
-                  Confirm
-                </Button>
+              {authenticatedUser?.sub !== post.userId && (
+                <>
+                  <Rating rating={rating} setRating={setRating} />
+                  {rating > 0 && (
+                    <Button onClick={handleRating}>Confirm</Button>
+                  )}
+                </>
               )}
             </div>
 
@@ -263,15 +358,21 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
 
               {/* Description */}
               <div>
-                <h3 className="text-lg font-semibold mb-2 dark:text-white">Description</h3>
-                <p className="text-gray-600 dark:text-gray-300 leading-relaxed">{post.description}</p>
+                <h3 className="text-lg font-semibold mb-2 dark:text-white">
+                  Description
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+                  {post.description}
+                </p>
               </div>
 
               <Separator className="dark:bg-gray-600" />
 
               {/* Post Information */}
               <div className="space-y-3">
-                <h3 className="text-lg font-semibold dark:text-white">Details</h3>
+                <h3 className="text-lg font-semibold dark:text-white">
+                  Details
+                </h3>
 
                 <div className="grid grid-cols-1 gap-3">
                   <div className="flex items-center gap-3">
@@ -281,18 +382,24 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
 
                   <div className="flex items-center gap-3">
                     <User className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                    <span className="dark:text-white">Username: {post.user.username}</span>
+                    <span className="dark:text-white">
+                      Username: {post.user.username}
+                    </span>
                   </div>
 
                   <div className="flex items-center gap-3">
                     <Calendar className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                    <span className="dark:text-white">Posted: {formatDate(post.createdAt)}</span>
+                    <span className="dark:text-white">
+                      Posted: {formatDate(post.createdAt)}
+                    </span>
                   </div>
 
                   {post.updatedAt !== post.createdAt && (
                     <div className="flex items-center gap-3">
                       <Calendar className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                      <span className="dark:text-white">Updated: {formatDate(post.updatedAt)}</span>
+                      <span className="dark:text-white">
+                        Updated: {formatDate(post.updatedAt)}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -303,10 +410,16 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
                 <>
                   <Separator className="dark:bg-gray-600" />
                   <div>
-                    <h3 className="text-lg font-semibold mb-3 dark:text-white">Categories</h3>
+                    <h3 className="text-lg font-semibold mb-3 dark:text-white">
+                      Categories
+                    </h3>
                     <div className="flex flex-wrap gap-2">
                       {post.postCategories.map((pc) => (
-                        <Badge key={pc.id} variant="secondary" className="flex items-center gap-1">
+                        <Badge
+                          key={pc.id}
+                          variant="secondary"
+                          className="flex items-center gap-1"
+                        >
                           <Tag className="w-3 h-3" />
                           {pc.category.name}
                         </Badge>
@@ -333,10 +446,83 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
               </div>
             </div>
           </div>
+
+          {/* Comments Section */}
+          <div className="mt-8 border-t pt-6 dark:border-gray-600">
+            <h3 className="text-xl font-semibold mb-4 dark:text-white flex items-center gap-2">
+              <MessageCircle className="w-5 h-5" />
+              Comments ({comments.length})
+            </h3>
+
+            {/* Add Comment Form */}
+            <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <div className="flex gap-3">
+                <div className="flex-1 space-y-3">
+                  <Textarea
+                    placeholder="Write a comment..."
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    className="min-h-[80px] resize-none dark:bg-gray-800 dark:border-gray-600"
+                  />
+                  <div className="flex justify-end">
+                    <Button
+                      onClick={handleSubmitComment}
+                      disabled={!newComment.trim() || isSubmittingComment}
+                      size="sm"
+                    >
+                      {isSubmittingComment ? (
+                        "Posting..."
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4 mr-2" />
+                          Post Comment
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Comments List */}
+            <div className="space-y-4">
+              {comments.length === 0 ? (
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  <MessageCircle className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>No comments yet. Be the first to comment!</p>
+                </div>
+              ) : (
+                comments.map((comment) => (
+                  <div
+                    key={comment.id}
+                    className="flex gap-3 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-medium text-sm dark:text-white">
+                          {comment.userName}
+                        </span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          {formatDate(comment.createdAt)}
+                        </span>
+                      </div>
+                      <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
+                        {comment.content}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
-      <ReportModal post={post} isOpen={isReportModalOpen} onClose={() => setIsReportModalOpen(false)} />
+      <ReportModal
+        post={post}
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+      />
     </>
-  )
+  );
 }
