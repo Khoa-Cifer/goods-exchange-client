@@ -18,3 +18,10 @@ export const sendMessageApi = async (conversationId: string, content: string) =>
     });
     return response.data.result;
 }
+
+export const readMessagesInConversation = async (conversationId: string) => {
+    const response = await http.put('/chat/conversations/read', {
+        conversationId: conversationId
+    })
+    return response.data.result;
+}

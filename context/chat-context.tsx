@@ -1,6 +1,6 @@
 "use client"
 
-import { createNewConversation, getConversationHistory, sendMessageApi } from "@/axios/chat"
+import { createNewConversation, getConversationHistory, readMessagesInConversation, sendMessageApi } from "@/axios/chat"
 import { searchUserByName } from "@/axios/user"
 import { Conversation, Message } from "@/types/chat"
 import { User } from "@/types/user"
@@ -123,13 +123,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       if (!currentUser) return
 
       try {
-        const response = await fetch(`/api/chat/conversations/${conversationId}/read`, {
-          method: "POST",
-        })
+        const response = await readMessagesInConversation(conversationId);
 
-        const result = await response.json()
-
-        if (result.success) {
+        if (response) {
           // Update local state to mark messages as read
           setConversations((prev) =>
             prev.map((conv) =>
@@ -144,7 +140,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
             ),
           )
         } else {
-          console.error("Failed to mark messages as read:", result.error)
+          console.error("Failed to mark messages as read:", response)
         }
       } catch (error) {
         console.error("Error marking messages as read:", error)
