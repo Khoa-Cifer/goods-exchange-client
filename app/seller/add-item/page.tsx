@@ -1,27 +1,49 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useEffect, useRef, useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Upload, ArrowLeft, ChevronsUpDown, Check } from "lucide-react"
-import Link from "next/link"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { ImageFile } from "@/types/image"
-import { PostType } from "@/enum/post-type"
-import { Category } from "@/types/category"
-import { Badge } from "@/components/ui/badge"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui/command"
-import { PostCampus } from "@/enum/post-campus"
-import { showNotification } from "@/components/notification-helper"
-import { createPost } from "@/axios/post"
-import { getAllCategories } from "@/axios/category"
+import { useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Upload, ArrowLeft, ChevronsUpDown, Check } from "lucide-react";
+import Link from "next/link";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { ImageFile } from "@/types/image";
+import { PostType } from "@/enum/post-type";
+import { Category } from "@/types/category";
+import { Badge } from "@/components/ui/badge";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { PostCampus } from "@/enum/post-campus";
+import { showNotification } from "@/components/notification-helper";
+import { createPost } from "@/axios/post";
+import { getAllCategories } from "@/axios/category";
+import { useRouter } from "next/navigation";
 
 export default function AddItem() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -39,6 +61,8 @@ export default function AddItem() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const fileUpdateRef = useRef<HTMLInputElement>(null);
 
+  const router = useRouter();
+
   const handleSelect = (categoryId: string) => {
     const category = categories.find((cat) => cat.id === categoryId);
     if (!category) return;
@@ -50,22 +74,28 @@ export default function AddItem() {
   };
 
   const handleRemove = (categoryId: string) => {
-    setSelectedCategories(selectedCategories.filter((cat) => cat.id !== categoryId));
+    setSelectedCategories(
+      selectedCategories.filter((cat) => cat.id !== categoryId)
+    );
   };
 
-  const handleFilesChange = async (event: React.ChangeEvent<HTMLInputElement>, replaceIndex: string | undefined = "") => {
+  const handleFilesChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+    replaceIndex: string | undefined = ""
+  ) => {
     const files = event.target.files ? Array.from(event.target.files) : [];
-    const imageFiles = files.filter(file => file.type.startsWith('image/'));
+    const imageFiles = files.filter((file) => file.type.startsWith("image/"));
 
     if (imageFiles.length < files.length) {
-      alert('Some files were ignored because they are not images.');
+      alert("Some files were ignored because they are not images.");
     }
 
     const base64Promises = imageFiles.map((file) => {
       return new Promise<ImageFile>((resolve, reject) => {
         const reader = new FileReader();
         reader.readAsDataURL(file);
-        reader.onload = () => resolve({ name: file.name, base64: reader.result as string });
+        reader.onload = () =>
+          resolve({ name: file.name, base64: reader.result as string });
         reader.onerror = (error) => reject(error);
       });
     });
@@ -78,11 +108,11 @@ export default function AddItem() {
         updated[index] = results[0]; // Replace only 1 image
         setImages(updated);
       } else {
-        setImages(prev => [...prev, ...results]);
+        setImages((prev) => [...prev, ...results]);
       }
-      event.target.value = ''; // Clear input to allow re-upload of the same file
+      event.target.value = ""; // Clear input to allow re-upload of the same file
     } catch (err) {
-      console.error('Error reading file:', err);
+      console.error("Error reading file:", err);
     }
   };
 
@@ -97,7 +127,7 @@ export default function AddItem() {
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }
-  }
+  };
 
   const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (fileInputRef.current) {
@@ -115,7 +145,7 @@ export default function AddItem() {
   const fetchCategories = async () => {
     const response = await getAllCategories();
     setCategories(response);
-  }
+  };
 
   useEffect(() => {
     fetchCategories();
@@ -123,7 +153,7 @@ export default function AddItem() {
 
   const handleCreatePost = async () => {
     if (price < 0) {
-      showNotification.warning("Price must be larger than 0.")
+      showNotification.warning("Price must be larger than 0.");
       return;
     }
 
@@ -135,7 +165,9 @@ export default function AddItem() {
       selectedCategories.length === 0 ||
       images.length === 0
     ) {
-      showNotification.warning("Please fill in all required fields and add at least one image.")
+      showNotification.warning(
+        "Please fill in all required fields and add at least one image."
+      );
       return;
     }
     setIsPostCreating(true);
@@ -145,24 +177,28 @@ export default function AddItem() {
         description,
         price: price,
         images: images
-          .filter(img => typeof img.base64 === "string" && img.base64 !== null)
-          .map(img => ({
+          .filter(
+            (img) => typeof img.base64 === "string" && img.base64 !== null
+          )
+          .map((img) => ({
             name: img.name,
             base64: img.base64 as string,
           })),
         campus,
         type,
-        categories: selectedCategories.map(cat => cat.id),
+        categories: selectedCategories.map((cat) => cat.id),
       };
       const result = await createPost(payload);
       showNotification.success(result.message || "Post created successfully!");
-      // Optionally redirect or reset form here
     } catch (error: any) {
-      showNotification.error(error?.response?.data?.Message || "Failed to create post.");
+      showNotification.error(
+        error?.response?.data?.Message || "Failed to create post."
+      );
     } finally {
       setIsPostCreating(false);
+      router.push("/seller");
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -177,8 +213,12 @@ export default function AddItem() {
                 </Button>
               </Link>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Add New Item</h1>
-                <p className="text-gray-600 dark:text-gray-300">Create a new listing for your item</p>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  Add New Item
+                </h1>
+                <p className="text-gray-600 dark:text-gray-300">
+                  Create a new listing for your item
+                </p>
               </div>
             </div>
             <ThemeToggle />
@@ -207,11 +247,17 @@ export default function AddItem() {
                         onClick={() => handleImageChange(index)}
                       >
                         <img
-                          src={typeof img.base64 === "string" ? img.base64 : undefined}
+                          src={
+                            typeof img.base64 === "string"
+                              ? img.base64
+                              : undefined
+                          }
                           alt={img.name}
                           className="w-full h-40 object-cover rounded"
                         />
-                        <p className="text-sm text-center mt-1 text-gray-600 dark:text-gray-300">Click to edit</p>
+                        <p className="text-sm text-center mt-1 text-gray-600 dark:text-gray-300">
+                          Click to edit
+                        </p>
                       </div>
                     ))}
                   </div>
@@ -228,7 +274,6 @@ export default function AddItem() {
                       ) : (
                         <>Add Image</>
                       )}
-
                     </Button>
                   </div>
 
@@ -238,7 +283,7 @@ export default function AddItem() {
                     multiple
                     ref={fileInputRef}
                     onChange={onInputChange}
-                    style={{ display: 'none' }}
+                    style={{ display: "none" }}
                   />
 
                   <input
@@ -247,7 +292,7 @@ export default function AddItem() {
                     multiple
                     ref={fileUpdateRef}
                     onChange={onUpdateChange}
-                    style={{ display: 'none' }}
+                    style={{ display: "none" }}
                   />
                 </div>
               </div>
@@ -292,7 +337,9 @@ export default function AddItem() {
                       <SelectValue placeholder="Select campus" />
                     </SelectTrigger>
                     <SelectContent className="dark:bg-gray-700 dark:border-gray-600">
-                      <SelectItem value={`${PostCampus.HCM}`}>Xavalo</SelectItem>
+                      <SelectItem value={`${PostCampus.HCM}`}>
+                        Xavalo
+                      </SelectItem>
                       <SelectItem value={`${PostCampus.HN}`}>Hola</SelectItem>
                     </SelectContent>
                   </Select>
@@ -353,8 +400,11 @@ export default function AddItem() {
                                   className="dark:hover:bg-gray-600 dark:text-white"
                                 >
                                   <Check
-                                    className={`mr-2 h-4 w-4 ${selectedCategories.includes(category) ? 'opacity-100' : 'opacity-0'
-                                      }`}
+                                    className={`mr-2 h-4 w-4 ${
+                                      selectedCategories.includes(category)
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    }`}
                                   />
                                   {category.name}
                                 </CommandItem>
@@ -374,7 +424,7 @@ export default function AddItem() {
                             className="dark:bg-gray-700 dark:text-white cursor-pointer"
                             onClick={() => handleRemove(category.id)}
                           >
-                            {category?.name || 'Unknown'} ✕
+                            {category?.name || "Unknown"} ✕
                           </Badge>
                         );
                       })}
@@ -390,11 +440,7 @@ export default function AddItem() {
                   className="flex-1 bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600"
                   disabled={isPostCreating}
                 >
-                  {isPostCreating ? (
-                    <>Creating your post</>
-                  ) : (
-                    <>Publish post</>
-                  )}
+                  {isPostCreating ? <>Creating your post</> : <>Publish post</>}
                 </Button>
               </div>
             </CardContent>
@@ -402,5 +448,5 @@ export default function AddItem() {
         </div>
       </div>
     </div>
-  )
+  );
 }
