@@ -1,6 +1,7 @@
-'use client';
+"use client";
 
 import { showNotification } from "@/components/notification-helper";
+import { hideLoading, showLoading } from "@/lib/loading-helper";
 import axios, { AxiosInstance } from "axios";
 
 const http: AxiosInstance = axios.create({
@@ -15,6 +16,7 @@ const http: AxiosInstance = axios.create({
 // ✅ Add a request interceptor to inject the latest token
 http.interceptors.request.use(
   (config) => {
+    showLoading();
     const token = localStorage.getItem("accessToken");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -24,17 +26,20 @@ http.interceptors.request.use(
     return config;
   },
   (error) => {
+    hideLoading();
     return Promise.reject(error);
   }
 );
 
 http.interceptors.response.use(
   (response) => {
+    hideLoading();
     return response;
   },
   (error) => {
+    hideLoading();
     // Handle errors globally
-    console.error('Axios error:', error.response || error.message);
+    console.error("Axios error:", error.response || error.message);
 
     // Optional: you can throw a custom error or handle specific status codes
     if (error.response) {
@@ -42,7 +47,10 @@ http.interceptors.response.use(
       if (status === 401) {
         // window.location.href = "/"
       } else if (status === 500) {
-        showNotification.error("Unexpected error has been occurred", "Please try again")
+        showNotification.error(
+          "Unexpected error has been occurred",
+          "Please try again"
+        );
       }
     }
 

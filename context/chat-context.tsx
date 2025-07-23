@@ -1,6 +1,7 @@
 "use client"
 
 import { createNewConversation, getConversationHistory, sendMessageApi } from "@/axios/chat"
+import { searchUserByName } from "@/axios/user"
 import { Conversation, Message } from "@/types/chat"
 import { User } from "@/types/user"
 import type React from "react"
@@ -188,13 +189,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
   const searchUsers = useCallback(async (query: string): Promise<User[]> => {
     try {
-      const response = await fetch(`/api/chat/users/search?q=${encodeURIComponent(query)}`)
-      const result = await response.json()
+      const response = await searchUserByName(query);
 
-      if (result.success) {
-        return result.data
+      if (response) {
+        return response
       } else {
-        console.error("Failed to search users:", result.error)
+        console.error("Failed to search users:", response)
         return []
       }
     } catch (error) {
