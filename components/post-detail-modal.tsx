@@ -38,7 +38,7 @@ import { Rating } from "./rating";
 import { formatDate } from "@/lib/utils";
 import { Comment } from "@/types/comment";
 import { Textarea } from "./ui/textarea";
-import { createComment, getCommentsByPost } from "@/axios/post";
+import { completePost, createComment, getCommentsByPost } from "@/axios/post";
 import { createOrUpdateRating, getCurrentRatingOnPost } from "@/axios/rating";
 import { showNotification } from "./notification-helper";
 
@@ -198,7 +198,13 @@ export function PostDetailModal({
     setIsSubmittingComment(false);
   };
 
-  const handleCompletePost = (currentPost: Post) => { };
+  const handleCompletePost = async (currentPost: Post) => {
+    const response = await completePost(currentPost.id);
+    if (response) {
+      showNotification.success("Post Updated", "Post complete successfully");
+      window.location.reload();
+    }
+  };
 
   return (
     <>
@@ -222,9 +228,9 @@ export function PostDetailModal({
                   className="dark:bg-gray-800 dark:border-gray-700"
                 >
                   {authenticatedUser &&
-                    authenticatedUser.sub === post.userId ? (
+                    authenticatedUser.sub === post.userId && post.status === PostStatus.Confirmed ? (
                     <DropdownMenuItem
-                      onClick={() => setIsReportModalOpen(true)}
+                      onClick={() => handleCompletePost(post)}
                       className="text-green-600 dark:text-green-400 dark:hover:bg-gray-700 cursor-pointer"
                     >
                       <CircleCheckBig className="w-4 h-4 mr-2" />

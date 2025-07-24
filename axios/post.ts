@@ -11,6 +11,11 @@ export async function confirmPost(postId: string) {
   return response.data;
 }
 
+export async function completePost(postId: string) {
+  const response = await http.put(`/posts/complete-post/${postId}`);
+  return response.data;
+}
+
 export async function rejectPost(postId: string) {
   const response = await http.put(`/posts/reject-post/${postId}`);
   return response.data;

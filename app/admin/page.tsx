@@ -250,7 +250,6 @@ export default function AdminDashboard() {
                       <th className="text-left py-3 px-4 dark:text-white">Status</th>
                       <th className="text-left py-3 px-4 dark:text-white">Join Date</th>
                       <th className="text-left py-3 px-4 dark:text-white">Items Listed</th>
-                      <th className="text-left py-3 px-4 dark:text-white">Rating</th>
                       <th className="text-left py-3 px-4 dark:text-white">Actions</th>
                     </tr>
                   </thead>
@@ -275,9 +274,8 @@ export default function AdminDashboard() {
                           <Badge variant={user.isActive === 1 ? "default" : "destructive"}>{user.isActive === 1 ? "Active" : "Suspended"}</Badge>
                         </td>
                         <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-300">{formatDate(user.createdAt)}</td>
-                        <td className="py-3 px-4 dark:text-white">0</td> {/* Placeholder for items listed, as we don't have that data in the user object */}
-                        <td className="py-3 px-4">
-                          <span className="flex items-center dark:text-white">⭐ 5</span>
+                        <td className="py-3 px-4 dark:text-white">
+                          {Array.isArray(user.posts) ? user.posts.length : 0}
                         </td>
                         <td className="py-3 px-4">
                           {authenticatedUser?.googleId !== user.googleId && user.email !== process.env.NEXT_PUBLIC_ADMIN_EMAIL && (

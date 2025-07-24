@@ -124,6 +124,15 @@ export const AdminPostCard = ({ post, onSelectPreviewImage, onUpdatePost }:
                                 Reject
                             </Button>
                         </>
+                    ) : post.status === PostStatus.Hidden ? (
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-green-600 dark:text-green-400 bg-transparent"
+                            onClick={() => handleConfirmPost(post.id)}
+                        >
+                            Activate Post
+                        </Button>
                     ) : (
                         <Button
                             variant="outline"

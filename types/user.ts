@@ -1,4 +1,5 @@
 import { Conversation, Message } from "./chat";
+import { Post } from "./post";
 
 export type UserRole = {
     id: string;
@@ -13,6 +14,7 @@ export type User = {
     id: string;
     username: string;
     email: string;
+    posts: Post[];
     provider?: string;
     googleId?: string;
     isActive?: number;

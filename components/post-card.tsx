@@ -30,6 +30,7 @@ import { PostStatus } from "@/enum/post-status";
 import { ReportModal } from "./report-modal";
 import { useAuth } from "@/context/auth-context";
 import { PostType } from "@/enum/post-type";
+import { completePost } from "@/axios/post";
 
 interface PostCardProps {
   post: Post;
@@ -72,6 +73,14 @@ export function PostCard({ post, showLoginPrompt = false }: PostCardProps) {
         );
       default:
         return <Badge variant="outline">Unknown</Badge>;
+    }
+  };
+
+  const handleCompletePost = async (currentPost: Post) => { 
+    const response = await completePost(currentPost.id);
+    if (response) {
+      showNotification.success("Post Updated", "Post complete successfully");
+      window.location.reload();
     }
   };
 
@@ -161,9 +170,9 @@ export function PostCard({ post, showLoginPrompt = false }: PostCardProps) {
                 align="end"
                 className="dark:bg-gray-800 dark:border-gray-700"
               >
-                {authenticatedUser && authenticatedUser.sub === post.userId ? (
+                {authenticatedUser && authenticatedUser.sub === post.userId  && post.status === PostStatus.Confirmed ? (
                   <DropdownMenuItem
-                    onClick={() => setIsReportModalOpen(true)}
+                    onClick={() => handleCompletePost(post)}
                     className="text-green-600 dark:text-green-400 dark:hover:bg-gray-700 cursor-pointer"
                   >
                     <CircleCheckBig className="w-4 h-4 mr-2" />
