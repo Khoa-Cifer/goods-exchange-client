@@ -55,3 +55,8 @@ export async function createComment(postId: string, content: string) {
   });
   return response.data.result;
 }
+
+export async function getCommentsByPost(postId: string) {
+  const response = await http.get(`/posts/all-comments/${postId}`);
+  return response.data.result;
+}

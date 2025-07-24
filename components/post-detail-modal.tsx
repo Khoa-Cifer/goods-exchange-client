@@ -22,7 +22,7 @@ import {
   CircleCheckBig,
   Send,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Post } from "@/types/post";
 import { ChatButton } from "@/components/chat-button";
 import {
@@ -38,6 +38,7 @@ import { Rating } from "./rating";
 import { formatDate } from "@/lib/utils";
 import { Comment } from "@/types/comment";
 import { Textarea } from "./ui/textarea";
+import { createComment, getCommentsByPost } from "@/axios/post";
 
 interface PostDetailModalProps {
   post: Post | null;
@@ -92,7 +93,16 @@ export function PostDetailModal({
 
   if (!post) return null;
 
-  const handleRating = async () => {};
+  const fetchPostComments = async () => {
+    const response = await getCommentsByPost(post.id);
+    setComments(response);
+  }
+
+  useEffect(() => {
+    fetchPostComments();
+  }, [])
+
+  const handleRating = async () => { };
 
   const getStatusBadge = (status: number) => {
     switch (status) {
@@ -164,30 +174,16 @@ export function PostDetailModal({
     }
   };
 
-  const handleSubmitComment = async () => {
+  const handleSubmitComment = async (currentPost: Post) => {
     if (!newComment.trim()) return;
-
     setIsSubmittingComment(true);
-
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    const comment: Comment = {
-      id: Date.now().toString(),
-      content: newComment,
-      userId: "current-user",
-      userName: "Current User",
-      postId: post.id,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    setComments((prev) => [...prev, comment]);
+    const response = await createComment(currentPost.id, newComment);
+    setComments((prev) => [...prev, response]);
     setNewComment("");
     setIsSubmittingComment(false);
   };
 
-  const handleCompletePost = (currentPost: Post) => {};
+  const handleCompletePost = (currentPost: Post) => { };
 
   return (
     <>
@@ -211,7 +207,7 @@ export function PostDetailModal({
                   className="dark:bg-gray-800 dark:border-gray-700"
                 >
                   {authenticatedUser &&
-                  authenticatedUser.sub === post.userId ? (
+                    authenticatedUser.sub === post.userId ? (
                     <DropdownMenuItem
                       onClick={() => setIsReportModalOpen(true)}
                       className="text-green-600 dark:text-green-400 dark:hover:bg-gray-700 cursor-pointer"
@@ -281,11 +277,10 @@ export function PostDetailModal({
                         {post.images.map((_, index) => (
                           <button
                             key={index}
-                            className={`w-2 h-2 rounded-full ${
-                              index === currentImageIndex
-                                ? "bg-white"
-                                : "bg-white/50"
-                            }`}
+                            className={`w-2 h-2 rounded-full ${index === currentImageIndex
+                              ? "bg-white"
+                              : "bg-white/50"
+                              }`}
                             onClick={() => setCurrentImageIndex(index)}
                           />
                         ))}
@@ -309,11 +304,10 @@ export function PostDetailModal({
                   {post.images.map((image, index) => (
                     <button
                       key={image.id}
-                      className={`flex-shrink-0 w-16 h-16 rounded border-2 overflow-hidden ${
-                        index === currentImageIndex
-                          ? "border-blue-500"
-                          : "border-gray-200 dark:border-gray-600"
-                      }`}
+                      className={`flex-shrink-0 w-16 h-16 rounded border-2 overflow-hidden ${index === currentImageIndex
+                        ? "border-blue-500"
+                        : "border-gray-200 dark:border-gray-600"
+                        }`}
                       onClick={() => setCurrentImageIndex(index)}
                     >
                       {image.imageBase64 ? (
@@ -466,7 +460,7 @@ export function PostDetailModal({
                   />
                   <div className="flex justify-end">
                     <Button
-                      onClick={handleSubmitComment}
+                      onClick={() => handleSubmitComment(post)}
                       disabled={!newComment.trim() || isSubmittingComment}
                       size="sm"
                     >
@@ -500,7 +494,7 @@ export function PostDetailModal({
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="font-medium text-sm dark:text-white">
-                          {comment.userName}
+                          {comment.user.username}
                         </span>
                         <span className="text-xs text-gray-500 dark:text-gray-400">
                           {formatDate(comment.createdAt)}
