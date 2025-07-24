@@ -39,6 +39,8 @@ import { formatDate } from "@/lib/utils";
 import { Comment } from "@/types/comment";
 import { Textarea } from "./ui/textarea";
 import { createComment, getCommentsByPost } from "@/axios/post";
+import { createOrUpdateRating, getCurrentRatingOnPost } from "@/axios/rating";
+import { showNotification } from "./notification-helper";
 
 interface PostDetailModalProps {
   post: Post | null;
@@ -98,11 +100,24 @@ export function PostDetailModal({
     setComments(response);
   }
 
+  const fetchRating = async () => {
+    const response = await getCurrentRatingOnPost(post.id);
+    if (response) {
+      setRating(response.star);
+    }
+  }
+
   useEffect(() => {
     fetchPostComments();
+    fetchRating();
   }, [])
 
-  const handleRating = async () => { };
+  const handleRating = async () => {
+    const response = await createOrUpdateRating(post.id, rating);
+    if (response) {
+      showNotification.success("Rating successfully");
+    }
+  };
 
   const getStatusBadge = (status: number) => {
     switch (status) {
