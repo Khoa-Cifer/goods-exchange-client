@@ -1,6 +1,6 @@
 'use client';
 
-import { redirect } from 'next/navigation';
+import { redirect, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import { ThemeToggle } from './theme-toggle';
 import { UserDropdown } from './user-dropdown';
@@ -14,11 +14,16 @@ interface ProtectedLayoutProps {
 }
 
 export default function ProtectedLayout({ children, allowedRole }: ProtectedLayoutProps) {
-    const { accessToken, authenticatedUser, logout } = useAuth();
+    const { authenticatedUser, logout } = useAuth();
+    const router = useRouter()
 
-    const roleArray = JSON.parse(authenticatedUser?.roleName || "");
-    if (!roleArray.includes(allowedRole)) {
-        console.warn('ProtectedLayout: Unauthorized access, redirecting to home.');
+    try {
+        const roleArray = JSON.parse(authenticatedUser?.roleName || "");
+        if (!roleArray.includes(allowedRole)) {
+            console.warn('ProtectedLayout: Unauthorized access, redirecting to home.');
+        }
+    } catch (error) {
+        router.push('/');
     }
 
     return (

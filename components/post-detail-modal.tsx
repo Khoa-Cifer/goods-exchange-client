@@ -48,37 +48,6 @@ interface PostDetailModalProps {
   onClose: () => void;
 }
 
-const mockComments = [
-  {
-    id: "1",
-    content: "Is this still available? I'm very interested!",
-    userId: "user1",
-    userName: "John Doe",
-    userAvatar: "/placeholder.svg?height=32&width=32",
-    postId: "1",
-    createdAt: "2024-01-15T10:30:00Z",
-    updatedAt: "2024-01-15T10:30:00Z",
-  },
-  {
-    id: "2",
-    content: "Great condition! Would you consider $80?",
-    userId: "user2",
-    userName: "Sarah Smith",
-    postId: "1",
-    createdAt: "2024-01-15T14:20:00Z",
-    updatedAt: "2024-01-15T14:20:00Z",
-  },
-  {
-    id: "3",
-    content: "Can you provide more details about the specifications?",
-    userId: "user3",
-    userName: "Mike Johnson",
-    postId: "1",
-    createdAt: "2024-01-16T09:15:00Z",
-    updatedAt: "2024-01-16T09:15:00Z",
-  },
-];
-
 export function PostDetailModal({
   post,
   isOpen,
@@ -108,9 +77,11 @@ export function PostDetailModal({
   }
 
   useEffect(() => {
-    fetchPostComments();
-    fetchRating();
-  }, [])
+    if (isOpen) {
+      fetchPostComments();
+      fetchRating();
+    }
+  }, [isOpen])
 
   const handleRating = async () => {
     const response = await createOrUpdateRating(post.id, rating);
