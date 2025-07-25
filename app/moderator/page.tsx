@@ -33,7 +33,7 @@ export default function ModeratorDashboard() {
   const [reports, setReports] = useState<Violation[]>([]);
 
   const [showPreviewImage, setShowPreviewImage] = useState<boolean>(false);
-  const [imageBase64, setImageBase64] = useState<string | null>(null);
+  const [cloudinaryPublicId, setCloudinaryPublicId] = useState<string | null>(null);
   const [openAssignRoleDialog, setOpenAssignRoleDialog] = useState(false);
   const [openUnassignRoleDialog, setOpenUnassignRoleDialog] = useState(false);
   const [selectedRole, setSelectedRole] = useState("");
@@ -46,9 +46,9 @@ export default function ModeratorDashboard() {
     setOpenUnassignRoleDialog(true);
   };
 
-  const handleViewPreviewImage = (base64Image: string) => {
+  const handleViewPreviewImage = (cloudinaryPublicId: string) => {
     setShowPreviewImage(true);
-    setImageBase64(base64Image);
+    setCloudinaryPublicId(cloudinaryPublicId);
   }
 
   const handleUpdatePost = (updatedPost: Post) => {
@@ -702,7 +702,7 @@ export default function ModeratorDashboard() {
           </Dialog>
         )}
 
-        {showPreviewImage && imageBase64 && (
+        {showPreviewImage && cloudinaryPublicId && (
           <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm"
             onClick={() => setShowPreviewImage(false)}
@@ -712,7 +712,7 @@ export default function ModeratorDashboard() {
               onClick={(e) => e.stopPropagation()} // Prevent closing on image click
             >
               <img
-                src={imageBase64}
+                src={cloudinaryPublicId}
                 alt="Preview"
                 className="max-w-full max-h-[80vh] rounded-lg shadow-lg"
               />

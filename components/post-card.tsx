@@ -31,6 +31,7 @@ import { ReportModal } from "./report-modal";
 import { useAuth } from "@/context/auth-context";
 import { PostType } from "@/enum/post-type";
 import { completePost } from "@/axios/post";
+import { displayPostImage } from "@/lib/utils";
 
 interface PostCardProps {
   post: Post;
@@ -137,9 +138,9 @@ export function PostCard({ post, showLoginPrompt = false }: PostCardProps) {
     <>
       <Card className="hover:shadow-lg transition-shadow cursor-pointer dark:bg-gray-700 dark:border-gray-600">
         <CardHeader className="p-0 relative">
-          {primaryImage?.imageBase64 ? (
+          {primaryImage?.cloudinaryPublicId ? (
             <img
-              src={post.images[0].imageBase64}
+              src={displayPostImage(primaryImage?.cloudinaryPublicId)}
               alt={post.title}
               className="w-full h-48 object-cover rounded-t-lg"
             />

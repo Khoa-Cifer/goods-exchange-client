@@ -35,7 +35,7 @@ import { ReportModal } from "./report-modal";
 import { PostStatus } from "@/enum/post-status";
 import { useAuth } from "@/context/auth-context";
 import { Rating } from "./rating";
-import { formatDate } from "@/lib/utils";
+import { displayPostImage, formatDate } from "@/lib/utils";
 import { Comment } from "@/types/comment";
 import { Textarea } from "./ui/textarea";
 import { completePost, createComment, getCommentsByPost } from "@/axios/post";
@@ -256,9 +256,9 @@ export function PostDetailModal({
               {post.images.length > 0 ? (
                 <div className="relative">
                   <div className="aspect-square bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
-                    {post.images[currentImageIndex]?.imageBase64 ? (
+                    {post.images[currentImageIndex]?.cloudinaryPublicId ? (
                       <img
-                        src={post.images[currentImageIndex].imageBase64}
+                        src={displayPostImage(post.images[currentImageIndex]?.cloudinaryPublicId)}
                         alt={`${post.title} - Image ${currentImageIndex + 1}`}
                         className="w-full h-full object-cover"
                       />
@@ -331,9 +331,9 @@ export function PostDetailModal({
                         }`}
                       onClick={() => setCurrentImageIndex(index)}
                     >
-                      {image.imageBase64 ? (
+                      {image.cloudinaryPublicId ? (
                         <img
-                          src={image.imageBase64}
+                          src={displayPostImage(image.cloudinaryPublicId)}
                           alt={`Thumbnail ${index + 1}`}
                           className="w-full h-full object-cover"
                         />

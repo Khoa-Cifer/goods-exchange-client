@@ -21,7 +21,6 @@ export type Post = {
     images: {
         id: string;
         cloudinaryPublicId: string;
-        imageBase64: string;
     }[];
     postCategories: {
         id: string;

@@ -33,7 +33,7 @@ export default function AdminDashboard() {
   const [reports, setReports] = useState<Violation[]>([]);
 
   const [showPreviewImage, setShowPreviewImage] = useState<boolean>(false);
-  const [imageBase64, setImageBase64] = useState<string | null>(null);
+  const [cloudinaryImageId, setCloudinaryImageId] = useState<string | null>(null);
   const [openAssignRoleDialog, setOpenAssignRoleDialog] = useState(false);
   const [openUnassignRoleDialog, setOpenUnassignRoleDialog] = useState(false);
   const [selectedRole, setSelectedRole] = useState("");
@@ -48,7 +48,7 @@ export default function AdminDashboard() {
 
   const handleViewPreviewImage = (base64Image: string) => {
     setShowPreviewImage(true);
-    setImageBase64(base64Image);
+    setCloudinaryImageId(base64Image);
   }
 
   const handleUpdatePost = (updatedPost: Post) => {
@@ -702,7 +702,7 @@ export default function AdminDashboard() {
           </Dialog>
         )}
 
-        {showPreviewImage && imageBase64 && (
+        {showPreviewImage && cloudinaryImageId && (
           <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm"
             onClick={() => setShowPreviewImage(false)}
@@ -712,7 +712,7 @@ export default function AdminDashboard() {
               onClick={(e) => e.stopPropagation()} // Prevent closing on image click
             >
               <img
-                src={imageBase64}
+                src={cloudinaryImageId}
                 alt="Preview"
                 className="max-w-full max-h-[80vh] rounded-lg shadow-lg"
               />

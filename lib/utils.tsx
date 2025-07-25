@@ -24,6 +24,11 @@ export function formatDate(dateString: string | undefined): string {
   return "";
 }
 
+export const displayPostImage = (cloudinaryPublicId: string) => {
+  const cloudinaryRootUrl = `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`;
+  return `${cloudinaryRootUrl}/${cloudinaryPublicId}`
+}
+
 export const getStatusBadge = (status: Request["status"]) => {
   switch (status) {
     case RequestStatus.Created:

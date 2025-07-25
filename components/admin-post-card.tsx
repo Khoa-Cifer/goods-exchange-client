@@ -92,7 +92,7 @@ export const AdminPostCard = ({ post, onSelectPreviewImage, onUpdatePost }:
                                 {post.images.map((image, index) => (
                                     <button
                                         key={image.id}
-                                        onClick={() => handleViewPreviewImage(image.imageBase64)}
+                                        onClick={() => handleViewPreviewImage(image.cloudinaryPublicId)}
                                         className="w-12 h-12 bg-gray-200 dark:bg-gray-600 rounded border flex items-center justify-center text-xs text-gray-500 dark:text-gray-400"
                                     >
                                         {index + 1}
