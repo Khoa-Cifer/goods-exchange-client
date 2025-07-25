@@ -712,7 +712,7 @@ export default function ModeratorDashboard() {
               onClick={(e) => e.stopPropagation()} // Prevent closing on image click
             >
               <img
-                src={cloudinaryPublicId}
+                src={displayPostImage(cloudinaryImageId)}
                 alt="Preview"
                 className="max-w-full max-h-[80vh] rounded-lg shadow-lg"
               />

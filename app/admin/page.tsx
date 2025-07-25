@@ -8,7 +8,7 @@ import { XCircle, CheckCircle, Package } from "lucide-react"
 import { useEffect, useState } from "react"
 import { approveReport, approveRequest, assignRoleToUser, banUser, getAllPosts, getAllReports, getAllRequests, rejectReport, rejectRequest, unassignRoleToUser, unbanUser } from "@/axios/admin";
 import { User } from "@/types/user";
-import { formatDate, getStatusBadge } from "@/lib/utils";
+import { displayPostImage, formatDate, getStatusBadge } from "@/lib/utils";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -712,7 +712,7 @@ export default function AdminDashboard() {
               onClick={(e) => e.stopPropagation()} // Prevent closing on image click
             >
               <img
-                src={cloudinaryImageId}
+                src={displayPostImage(cloudinaryImageId)}
                 alt="Preview"
                 className="max-w-full max-h-[80vh] rounded-lg shadow-lg"
               />
